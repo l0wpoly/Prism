@@ -44,7 +44,7 @@ textarea,.out{flex:1;width:100%;border:0;background:transparent;color:var(--ink)
 .chip{font:500 .875rem inherit;font-family:inherit;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
 .chip[aria-pressed=true]{background:var(--pencil);border-color:var(--pencil);color:var(--pi)}
 .ask{display:flex;gap:8px;margin-top:12px}
-input[type=text],select{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+input[type=text],input[type=password],select{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
 .ask input{flex:1}
 .go{font:600 1rem inherit;font-family:inherit;padding:10px 22px;border-radius:8px;border:0;background:var(--pencil);color:var(--pi);cursor:pointer}
 .go:disabled{opacity:.55;cursor:wait}
@@ -112,10 +112,19 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 #v-home:not([hidden]){display:flex;flex-direction:column;height:calc(100vh - 76px);min-height:420px}
 #v-home .chat{flex:1;display:flex;flex-direction:column;min-height:0}
 #v-home .msgs{max-height:none;flex:1;min-height:0}
-#sugg:empty{display:none}#v-home #sugg:not(:empty){flex:1;align-content:center;justify-content:center}
+#sugg:empty{display:none}#v-home #sugg:not(:empty){flex:1;align-content:flex-end;justify-content:center}
 #cpre{display:flex;align-items:center;gap:10px;margin-bottom:8px}#cpre[hidden]{display:none}#cpre img{max-height:80px;border-radius:8px}
 .m img{display:block;max-width:220px;max-height:160px;border-radius:8px;margin-bottom:6px}.ask .sm{font-size:1.1rem;padding:0 14px}
 @media(max-width:800px){#v-home:not([hidden]){height:calc(100dvh - 190px)}}
+#v-home .chat{background:none;border:0!important;box-shadow:none!important;padding:0}
+#v-home .chat>div:first-child,#v-home .msgs,#v-home #sugg,#cpre{max-width:760px;width:100%;margin-left:auto;margin-right:auto}
+#v-home .m.a{background:var(--panel);border:1px solid var(--line)}
+#v-home .ask{align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px;max-width:760px;width:100%;margin:12px auto 0}
+#v-home .ask:focus-within{border-color:var(--pencil);box-shadow:0 0 0 2px color-mix(in srgb,var(--pencil) 25%,transparent)}
+#v-home .ask input[type=text]{flex:1;border:0;background:transparent;padding:8px 6px;outline:none;border-radius:0}
+#v-home .ask #cat{width:36px;height:36px;border-radius:50%;padding:0;font-size:1.5rem;line-height:1;display:grid;place-items:center;flex:none}
+#v-home .ask .go{border-radius:999px;padding:8px 20px}
+.note.err{color:var(--err)}.soon{font-size:.72rem;background:var(--bg);border:1px solid var(--line);padding:1px 8px;border-radius:999px;color:var(--muted);white-space:nowrap}#auth .seg{margin-bottom:16px}
 :focus-visible{outline:2px solid var(--pencil);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}.brand{padding:4px 10px}.sp{display:none}.acctwrap{margin-left:auto;width:auto}.acct small{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;min-width:180px;right:0}.panes{grid-template-columns:1fr}main{padding:20px 16px}}
 </style>
@@ -131,6 +140,7 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
   <div class="sp"></div>
   <div class="acctwrap">
     <div class="menu" id="menu" hidden>
+      <button id="mauth"></button>
       <button data-dlg="settings">Settings</button>
       <button data-dlg="plans">Change plan</button>
     </div>
@@ -188,16 +198,27 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 <dialog id="plans"><h2>Change plan</h2>
   <div class="plans">
     <button class="plan" data-plan="free"><b>Free</b><ul><li>10 edits a day</li><li>Editor and AI checker</li></ul></button>
-    <button class="plan" data-plan="pro"><b>Pro</b> $4/mo<ul><li>50 edits a day</li><li>5x more than Free</li></ul></button>
-    <button class="plan" data-plan="premium"><b>Premium</b> $9/mo<ul><li>100 edits a day</li><li>2x more than Pro</li></ul></button>
+    <button class="plan" data-plan="pro"><b>Pro</b> $4/mo <span class="soon">Coming soon</span><ul><li>50 edits a day</li><li>5x more than Free</li></ul></button>
+    <button class="plan" data-plan="premium"><b>Premium</b> $9/mo <span class="soon">Coming soon</span><ul><li>100 edits a day</li><li>2x more than Pro</li></ul></button>
   </div>
   <p class="note" id="usage"></p>
-  <p class="note">Plans are a preview for now. Real accounts and payments still need to be connected.</p>
+  <p class="note" id="plannote">Changing plans is coming soon.</p>
   <div class="close"><button class="go" data-close>Done</button></div>
 </dialog>
 
+<dialog id="auth"><h2>Welcome to Prism</h2>
+  <div class="seg" role="group" aria-label="Log in or sign up"><button type="button" id="alogin" aria-pressed="true">Log in</button><button type="button" id="asignup" aria-pressed="false">Sign up</button></div>
+  <form id="aform">
+    <div class="row"><label for="aemail">Email</label><input type="text" id="aemail" inputmode="email" autocomplete="email"></div>
+    <div class="row"><label for="apass">Password</label><input type="password" id="apass" autocomplete="current-password"></div>
+    <p class="note" id="amsg" aria-live="polite"></p>
+    <div class="close"><button type="button" class="sm" data-close>Cancel</button>&nbsp;<button class="go" id="asub">Log in</button></div>
+  </form>
+  <p class="note">By continuing you agree to the Terms of service and Privacy policy.</p>
+</dialog>
+
 <dialog id="privacy" class="legal"><h2>Privacy policy</h2><p class="note">Last updated October 20, 2026</p>
-  <p><b>What we handle.</b> The text and images you submit to a tool or to the assistant chat, plus your settings, display name and edit history. Settings and history are saved in your own browser (local storage), not on our servers. There are no accounts yet.</p>
+  <p><b>What we handle.</b> The text and images you submit to a tool or to the assistant chat, plus your settings, display name and edit history. Settings and history are saved in your own browser (local storage), not on our servers. If you create an account, your email address and password (the password is stored scrambled, never in plain text) are kept by our account provider, Supabase.</p>
   <p><b>How your text is used.</b> When you run a tool, your text goes to our server and then to Google's Gemini API, which writes the result. We don't save your text on our server. Google processes it under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't submit passwords, ID numbers, medical details or other sensitive or confidential text.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off history, clear it, download your data, or delete everything. Clearing your browser data does the same.</p>
@@ -219,18 +240,21 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 const $=id=>document.getElementById(id), esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const PRESETS=[["Fix grammar and punctuation","Fix grammar, spelling, and punctuation only. Do not change the wording or style otherwise."],["Rephrase","Rephrase this so it reads naturally and clearly, keeping the same meaning."],["Make it formal","Rewrite in a formal, professional tone."],["Make it casual","Rewrite in a relaxed, casual tone."],["Shorten","Make this shorter and tighter without losing the key points."],["Expand","Expand this with a little more detail and flow, without inventing facts."]];
 const LIMITS={free:10,pro:50,premium:100},NAMES={free:"Free",pro:"Pro",premium:"Premium"};
+// Accounts: fill these in after making a free Supabase project (see SETUP-ACCOUNTS.md)
+const SUPABASE_URL="",SUPABASE_KEY="";
 function check(){const n=LIMITS[S.plan]||10;if(usedToday()>=n)throw new Error(`You've used your ${n} edits for today.`+(S.plan==="premium"?" Come back tomorrow.":" Upgrade from your account menu for more."))}
 
 // saved data (browser only)
 let S={name:"Guest",plan:"free",theme:"auto",usage:{d:"",n:0},history:[],look:"office",variant:"US",size:"M",highlight:true,autocopy:false,keepHistory:true};
 try{Object.assign(S,JSON.parse(localStorage.getItem("redline")||"{}"))}catch{}
+S.plan="free";S.session=S.session||null;
 const save=()=>{try{localStorage.setItem("redline",JSON.stringify(S))}catch{}};
 const today=()=>new Date().toISOString().slice(0,10);
 function usedToday(){return S.usage.d===today()?S.usage.n:0}
 
 function paintAccount(){
   $("aname").textContent=S.name||"Guest"; $("av").textContent=(S.name||"G")[0].toUpperCase();
-  $("aplan").textContent=NAMES[S.plan]+" plan";
+  $("aplan").textContent=S.session?"Free plan":"Not signed in";$("mauth").textContent=S.session?"Sign out":"Log in or sign up";
   document.documentElement.dataset.look=S.look;document.documentElement.dataset.theme=S.look!=="classic"?"light":S.theme==="auto"?"":S.theme;document.documentElement.style.setProperty("--fs",{S:"1rem",M:"1.15rem",L:"1.35rem"}[S.size]||"1.15rem");
   document.querySelectorAll(".plan").forEach(b=>b.setAttribute("aria-pressed",b.dataset.plan===S.plan));
   $("usage").textContent=`${usedToday()} of ${LIMITS[S.plan]} edits used today.`;
@@ -251,7 +275,7 @@ document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("di
 $("sname").oninput=e=>{S.name=e.target.value.trim()||"Guest";save();paintAccount()};
 $("stheme").onchange=e=>{S.theme=e.target.value;save();paintAccount()};
 $("clearhist").onclick=()=>{S.history=[];save();$("clearhist").textContent="Cleared"};
-document.querySelectorAll(".plan").forEach(b=>b.onclick=()=>{S.plan=b.dataset.plan;save();paintAccount()});
+document.querySelectorAll(".plan").forEach(b=>b.onclick=()=>{$("plannote").textContent="Coming soon! You can't change plans yet.";$("plannote").style.fontWeight="600"});
 
 // calling the server
 async function api(body){
@@ -407,7 +431,7 @@ function paintHome(){
 
 // assistant chat
 let CHAT=[],busy=false,pending=null;
-const CHATHTML=`<div class="card chat"><div style="text-align:right"><button type="button" class="sm" id="cn" hidden>New chat</button></div><div class="msgs" id="msgs" aria-live="polite"></div><div class="ex" id="sugg" style="margin:0 0 10px;max-width:none"></div><div id="cpre" hidden></div><form class="ask" id="cf" style="margin:0"><button type="button" class="sm" id="cat" aria-label="Attach an image" title="Attach an image">📎</button><input type="file" id="cfile" accept="image/*" hidden><input type="text" id="ci" maxlength="1000" placeholder="Ask anything, or attach an image..." aria-label="Message"><button class="go">Send</button></form></div>`;
+const CHATHTML=`<div class="card chat"><div style="text-align:right"><button type="button" class="sm" id="cn" hidden>New chat</button></div><div class="msgs" id="msgs" aria-live="polite"></div><div class="ex" id="sugg" style="margin:0 0 10px;max-width:none"></div><div id="cpre" hidden></div><form class="ask" id="cf" style="margin:0"><button type="button" class="sm" id="cat" aria-label="Attach an image" title="Attach an image">+</button><input type="file" id="cfile" accept="image/*" hidden><input type="text" id="ci" maxlength="1000" placeholder="Ask anything, or attach an image..." aria-label="Message"><button class="go">Send</button></form></div>`;
 const SUGG=["Make my email sound friendlier","Give me a stronger opening line","When do I use who vs whom?","Help me write a cover letter"];
 function paintChat(){
   const m=$("msgs");m.textContent="";
@@ -448,6 +472,46 @@ function wireChat(){
   paintChat();setPending(pending);$("cf").onsubmit=e=>{e.preventDefault();sendChat($("ci").value)};
   $("cat").onclick=()=>$("cfile").click();$("cfile").onchange=e=>{pickImage(e.target.files[0]);e.target.value=""};
   $("ci").addEventListener("paste",e=>{const f=[...e.clipboardData.files].find(x=>x.type.startsWith("image/"));if(f){e.preventDefault();pickImage(f)}});
+}
+
+// accounts
+async function authCall(path,body,token){
+  if(!SUPABASE_URL||!SUPABASE_KEY)throw new Error("Accounts aren't switched on yet.");
+  let r;try{r=await fetch(SUPABASE_URL+"/auth/v1/"+path,{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,...(token?{Authorization:"Bearer "+token}:{})},body:JSON.stringify(body||{})})}
+  catch{throw new Error("Couldn't reach the account service. Check your connection.")}
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.msg||d.error_description||d.message||"Something went wrong.");
+  return d;
+}
+let mode="login";
+function setMode(m){mode=m;$("alogin").setAttribute("aria-pressed",m==="login");$("asignup").setAttribute("aria-pressed",m==="signup");$("asub").textContent=m==="login"?"Log in":"Create account";$("amsg").textContent="";$("apass").autocomplete=m==="login"?"current-password":"new-password"}
+$("alogin").onclick=()=>setMode("login");$("asignup").onclick=()=>setMode("signup");
+function startSession(tok,refresh,email,exp){S.session={access_token:tok,refresh_token:refresh,email,exp:Date.now()+(exp||3600)*1000};if(email&&S.name==="Guest")S.name=email.split("@")[0];save();paintAccount();paintHome()}
+$("aform").onsubmit=async e=>{
+  e.preventDefault();const email=$("aemail").value.trim(),password=$("apass").value,msg=$("amsg");msg.className="note";msg.textContent="";
+  if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent="Enter a valid email address.";msg.className="note err";return}
+  if(password.length<6){msg.textContent="Your password needs at least 6 characters.";msg.className="note err";return}
+  $("asub").disabled=true;
+  try{
+    const d=mode==="login"?await authCall("token?grant_type=password",{email,password}):await authCall("signup",{email,password});
+    if(d.access_token){startSession(d.access_token,d.refresh_token,d.user?.email||email,d.expires_in);$("apass").value="";$("auth").close()}
+    else msg.textContent="Almost done! Check your email to confirm your account, then log in."
+  }catch(err){msg.textContent=err.message;msg.className="note err"}
+  finally{$("asub").disabled=false}
+};
+$("mauth").onclick=()=>{
+  $("menu").hidden=true;
+  if(S.session){authCall("logout",{},S.session.access_token).catch(()=>{});S.session=null;save();paintAccount();paintHome()}
+  else{setMode("login");$("auth").showModal()}
+};
+// coming back from the confirm-email link
+if(location.hash.includes("access_token=")){
+  const q=new URLSearchParams(location.hash.slice(1)),tok=q.get("access_token");
+  if(tok&&q.get("type")!=="recovery"&&SUPABASE_URL){
+    S.session={access_token:tok,refresh_token:q.get("refresh_token"),email:"",exp:Date.now()+(+q.get("expires_in")||3600)*1000};save();
+    fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+tok}}).then(r=>r.json()).then(u=>{if(u.email){S.session.email=u.email;if(S.name==="Guest")S.name=u.email.split("@")[0];save();paintAccount()}}).catch(()=>{});
+  }
+  history.replaceState(null,"",location.pathname);
 }
 
 // settings
