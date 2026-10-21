@@ -182,6 +182,7 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 <div id="toast" hidden role="status"></div>
 
 <dialog id="settings"><h2>Settings</h2>
+  <div class="row"><b>Account</b><span class="note" id="semail" style="margin:0"></span><span><button class="sm" id="sverify">Verify email</button></span><span class="note" id="svmsg" style="margin:0"></span></div>
   <div class="row"><label for="sname">Display name</label><input type="text" id="sname" maxlength="30"></div>
   <div class="row"><label for="slook">Look</label><select id="slook"><option value="office">Office</option><option value="clean">Clean white</option><option value="classic">Classic</option></select></div>
   <div class="row"><label for="stheme">Theme (Classic look only)</label><select id="stheme"><option value="auto">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
@@ -207,12 +208,13 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 </dialog>
 
 <dialog id="auth"><h2>Welcome to Prism</h2>
+  <p class="sub" style="margin-bottom:14px">Create a free account to get started. You can verify your email later.</p>
   <div class="seg" role="group" aria-label="Log in or sign up"><button type="button" id="alogin" aria-pressed="true">Log in</button><button type="button" id="asignup" aria-pressed="false">Sign up</button></div>
   <form id="aform">
     <div class="row"><label for="aemail">Email</label><input type="text" id="aemail" inputmode="email" autocomplete="email"></div>
     <div class="row"><label for="apass">Password</label><input type="password" id="apass" autocomplete="current-password"></div>
     <p class="note" id="amsg" aria-live="polite"></p>
-    <div class="close"><button type="button" class="sm" data-close>Cancel</button>&nbsp;<button class="go" id="asub">Log in</button></div>
+    <div class="close"><button type="button" class="sm" data-close>Maybe later</button>&nbsp;<button class="go" id="asub">Log in</button></div>
   </form>
   <p class="note">By continuing you agree to the Terms of service and Privacy policy.</p>
 </dialog>
@@ -241,7 +243,7 @@ const $=id=>document.getElementById(id), esc=s=>s.replace(/[&<>]/g,c=>({"&":"&am
 const PRESETS=[["Fix grammar and punctuation","Fix grammar, spelling, and punctuation only. Do not change the wording or style otherwise."],["Rephrase","Rephrase this so it reads naturally and clearly, keeping the same meaning."],["Make it formal","Rewrite in a formal, professional tone."],["Make it casual","Rewrite in a relaxed, casual tone."],["Shorten","Make this shorter and tighter without losing the key points."],["Expand","Expand this with a little more detail and flow, without inventing facts."]];
 const LIMITS={free:10,pro:50,premium:100},NAMES={free:"Free",pro:"Pro",premium:"Premium"};
 // Accounts: fill these in after making a free Supabase project (see SETUP-ACCOUNTS.md)
-const SUPABASE_URL="https://yssvbqshbblwsumjxpwe.supabase.co",SUPABASE_KEY="sb_publishable_tk1h-3Yf7nwRBFpBLJpZ6A_JDzyl042";
+const SUPABASE_URL="",SUPABASE_KEY="";
 function check(){const n=LIMITS[S.plan]||10;if(usedToday()>=n)throw new Error(`You've used your ${n} edits for today.`+(S.plan==="premium"?" Come back tomorrow.":" Upgrade from your account menu for more."))}
 
 // saved data (browser only)
@@ -254,7 +256,7 @@ function usedToday(){return S.usage.d===today()?S.usage.n:0}
 
 function paintAccount(){
   $("aname").textContent=S.name||"Guest"; $("av").textContent=(S.name||"G")[0].toUpperCase();
-  $("aplan").textContent=S.session?"Free plan":"Not signed in";$("mauth").textContent=S.session?"Sign out":"Log in or sign up";
+  $("aplan").textContent=S.session?"Free plan"+(S.session.verified?"":" · unverified"):"Not signed in";$("mauth").textContent=S.session?"Sign out":"Log in or sign up";
   document.documentElement.dataset.look=S.look;document.documentElement.dataset.theme=S.look!=="classic"?"light":S.theme==="auto"?"":S.theme;document.documentElement.style.setProperty("--fs",{S:"1rem",M:"1.15rem",L:"1.35rem"}[S.size]||"1.15rem");
   document.querySelectorAll(".plan").forEach(b=>b.setAttribute("aria-pressed",b.dataset.plan===S.plan));
   $("usage").textContent=`${usedToday()} of ${LIMITS[S.plan]} edits used today.`;
@@ -486,7 +488,7 @@ async function authCall(path,body,token){
 let mode="login";
 function setMode(m){mode=m;$("alogin").setAttribute("aria-pressed",m==="login");$("asignup").setAttribute("aria-pressed",m==="signup");$("asub").textContent=m==="login"?"Log in":"Create account";$("amsg").textContent="";$("apass").autocomplete=m==="login"?"current-password":"new-password"}
 $("alogin").onclick=()=>setMode("login");$("asignup").onclick=()=>setMode("signup");
-function startSession(tok,refresh,email,exp){S.session={access_token:tok,refresh_token:refresh,email,exp:Date.now()+(exp||3600)*1000};if(email&&S.name==="Guest")S.name=email.split("@")[0];save();paintAccount();paintHome()}
+function startSession(tok,refresh,email,exp,verified){S.session={access_token:tok,refresh_token:refresh,email,verified:!!verified,exp:Date.now()+(exp||3600)*1000};if(email&&S.name==="Guest")S.name=email.split("@")[0];save();paintAccount();paintHome()}
 $("aform").onsubmit=async e=>{
   e.preventDefault();const email=$("aemail").value.trim(),password=$("apass").value,msg=$("amsg");msg.className="note";msg.textContent="";
   if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent="Enter a valid email address.";msg.className="note err";return}
@@ -494,7 +496,7 @@ $("aform").onsubmit=async e=>{
   $("asub").disabled=true;
   try{
     const d=mode==="login"?await authCall("token?grant_type=password",{email,password}):await authCall("signup",{email,password});
-    if(d.access_token){startSession(d.access_token,d.refresh_token,d.user?.email||email,d.expires_in);$("apass").value="";$("auth").close()}
+    if(d.access_token){startSession(d.access_token,d.refresh_token,d.user?.email||email,d.expires_in,d.user?.user_metadata?.verified);$("apass").value="";$("auth").close()}
     else msg.textContent="Almost done! Check your email to confirm your account, then log in."
   }catch(err){msg.textContent=err.message;msg.className="note err"}
   finally{$("asub").disabled=false}
@@ -504,18 +506,32 @@ $("mauth").onclick=()=>{
   if(S.session){authCall("logout",{},S.session.access_token).catch(()=>{});S.session=null;save();paintAccount();paintHome()}
   else{setMode("login");$("auth").showModal()}
 };
-// coming back from the confirm-email link
+function paintVerify(){
+  const a=S.session;$("svmsg").textContent="";
+  $("semail").textContent=a?`${a.email||"Your account"} · ${a.verified?"Verified ✓":"Not verified"}`:"You're not signed in.";
+  $("sverify").hidden=!!(a&&a.verified);$("sverify").textContent=a?"Verify email":"Log in or sign up";
+}
+$("sverify").onclick=async()=>{
+  if(!S.session){$("settings").close();setMode("signup");$("auth").showModal();return}
+  $("sverify").disabled=true;
+  try{await authCall("otp",{email:S.session.email,create_user:false});$("svmsg").textContent="Sent! Open the email and click the link to finish."}
+  catch(err){$("svmsg").textContent=err.message}
+  finally{$("sverify").disabled=false}
+};
+// coming back from an email link (verify or confirm)
 if(location.hash.includes("access_token=")){
   const q=new URLSearchParams(location.hash.slice(1)),tok=q.get("access_token");
   if(tok&&q.get("type")!=="recovery"&&SUPABASE_URL){
-    S.session={access_token:tok,refresh_token:q.get("refresh_token"),email:"",exp:Date.now()+(+q.get("expires_in")||3600)*1000};save();
+    S.session={access_token:tok,refresh_token:q.get("refresh_token"),email:"",verified:true,exp:Date.now()+(+q.get("expires_in")||3600)*1000};save();
+    fetch(SUPABASE_URL+"/auth/v1/user",{method:"PUT",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({data:{verified:true}})}).catch(()=>{});
+    setTimeout(()=>{const t=$("toast");t.textContent="Email verified. You're all set!";t.hidden=false;setTimeout(()=>t.hidden=true,4000)},500);
     fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+tok}}).then(r=>r.json()).then(u=>{if(u.email){S.session.email=u.email;if(S.name==="Guest")S.name=u.email.split("@")[0];save();paintAccount()}}).catch(()=>{});
   }
   history.replaceState(null,"",location.pathname);
 }
 
 // settings
-function fillSettings(){$("slook").value=S.look;$("sname").value=S.name;$("stheme").value=S.theme;$("svariant").value=S.variant;$("ssize").value=S.size;$("shl").checked=S.highlight;$("sac").checked=S.autocopy;$("skh").checked=S.keepHistory;$("clearhist").textContent="Clear history"}
+function fillSettings(){paintVerify();$("slook").value=S.look;$("sname").value=S.name;$("stheme").value=S.theme;$("svariant").value=S.variant;$("ssize").value=S.size;$("shl").checked=S.highlight;$("sac").checked=S.autocopy;$("skh").checked=S.keepHistory;$("clearhist").textContent="Clear history"}
 $("slook").onchange=e=>{S.look=e.target.value;save();paintAccount()};
 $("svariant").onchange=e=>{S.variant=e.target.value;save()};
 $("ssize").onchange=e=>{S.size=e.target.value;save();paintAccount()};
@@ -527,6 +543,7 @@ $("wipe").onclick=()=>{if(confirm("Delete all your saved data in this browser? T
 document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){const b=document.querySelector("main>section:not([hidden]) .go");if(b&&!b.disabled)b.click()}});
 document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}));
 paintAccount();paintHome();
+if(SUPABASE_URL&&!S.session&&!S.welcomed){S.welcomed=true;save();setMode("signup");$("auth").showModal()}
 </script>
 </body>
 </html>
