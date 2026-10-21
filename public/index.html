@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redline</title>
+<title>Redline: AI writing helper</title>
+<meta name="description" content="Fix grammar, rephrase, summarize, translate and more with AI.">
+<meta name="theme-color" content="#185ABD">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
@@ -58,7 +61,7 @@ dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);c
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog h2{font:500 1.5rem "Newsreader",Georgia,serif;margin:0 0 12px}
 .row{display:grid;gap:4px;margin-bottom:14px}
-.plans{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:600px){.plans{grid-template-columns:1fr}}
 .plan{border:2px solid var(--line);border-radius:10px;padding:14px;text-align:left;background:none;color:inherit;font:inherit;cursor:pointer}
 .plan[aria-pressed=true]{border-color:var(--pencil)}
 .plan b{font-size:1.1rem}.plan ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.9rem}
@@ -100,11 +103,18 @@ html[data-look=clean] .pane,html[data-look=clean] .card{border:0!important;borde
 html[data-look=clean] .ph{border-bottom:1px solid var(--line)}
 html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg button{border-radius:999px}
 .chat{padding:14px}.msgs{max-height:340px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}.msgs[hidden]{display:none}.m{max-width:80%;padding:9px 13px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}.m.u{align-self:flex-end;background:var(--pencil);color:var(--pi)}.m.a{align-self:flex-start;background:var(--bg)}
+.go,.chip,.sm,.nav,.seg button,.tool,.plan,.acct{transition:background .15s,border-color .15s,filter .15s,transform .15s}
+.go:hover:not(:disabled){filter:brightness(1.1)}.chip:hover,.sm:hover,.seg button:hover,.plan:hover{border-color:var(--pencil)}.tool:hover{transform:translateY(-2px);border-color:var(--pencil)}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);display:flex;gap:16px;color:var(--muted);font-size:.85rem}.link{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 16px;border-radius:8px;font-size:.9rem;box-shadow:0 6px 20px rgba(0,0,0,.3);z-index:50;max-width:90vw}#toast[hidden]{display:none}
+@media(max-width:800px){.nav{width:auto}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 :focus-visible{outline:2px solid var(--pencil);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}.brand{padding:4px 10px}.sp{display:none}.acctwrap{margin-left:auto;width:auto}.acct small{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;min-width:180px;right:0}.panes{grid-template-columns:1fr}main{padding:20px 16px}}
 </style>
 </head>
 <body>
+<noscript>Redline needs JavaScript to work.</noscript>
 <aside>
   <div class="brand">Redline</div>
   <button class="nav" data-view="home" aria-current="page">Home</button>
@@ -150,7 +160,9 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
     <h1>History</h1><p class="sub">Your last 30 edits, saved in this browser only.</p>
     <div class="hist" id="hist"></div>
   </section>
+  <footer class="foot"><span>Redline</span><button class="link" data-dlg="privacy">Privacy policy</button><button class="link" data-dlg="terms">Terms of service</button></footer>
 </main>
+<div id="toast" hidden role="status"></div>
 
 <dialog id="settings"><h2>Settings</h2>
   <div class="row"><label for="sname">Display name</label><input type="text" id="sname" maxlength="30"></div>
@@ -169,7 +181,8 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 <dialog id="plans"><h2>Change plan</h2>
   <div class="plans">
     <button class="plan" data-plan="free"><b>Free</b><ul><li>10 edits a day</li><li>Editor and AI checker</li></ul></button>
-    <button class="plan" data-plan="pro"><b>Pro</b> $8/mo<ul><li>Unlimited edits</li><li>Longer texts (coming soon)</li></ul></button>
+    <button class="plan" data-plan="pro"><b>Pro</b> $4/mo<ul><li>50 edits a day</li><li>5x more than Free</li></ul></button>
+    <button class="plan" data-plan="premium"><b>Premium</b> $9/mo<ul><li>100 edits a day</li><li>2x more than Pro</li></ul></button>
   </div>
   <p class="note" id="usage"></p>
   <p class="note">Plans are a preview for now. Real accounts and payments still need to be connected.</p>
@@ -198,7 +211,8 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 <script>
 const $=id=>document.getElementById(id), esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const PRESETS=[["Fix grammar and punctuation","Fix grammar, spelling, and punctuation only. Do not change the wording or style otherwise."],["Rephrase","Rephrase this so it reads naturally and clearly, keeping the same meaning."],["Make it formal","Rewrite in a formal, professional tone."],["Make it casual","Rewrite in a relaxed, casual tone."],["Shorten","Make this shorter and tighter without losing the key points."],["Expand","Expand this with a little more detail and flow, without inventing facts."]];
-const FREE_LIMIT=10;
+const LIMITS={free:10,pro:50,premium:100},NAMES={free:"Free",pro:"Pro",premium:"Premium"};
+function check(){const n=LIMITS[S.plan]||10;if(usedToday()>=n)throw new Error(`You've used your ${n} edits for today.`+(S.plan==="premium"?" Come back tomorrow.":" Upgrade from your account menu for more."))}
 
 // saved data (browser only)
 let S={name:"Guest",plan:"free",theme:"auto",usage:{d:"",n:0},history:[],look:"office",variant:"US",size:"M",highlight:true,autocopy:false,keepHistory:true};
@@ -209,10 +223,10 @@ function usedToday(){return S.usage.d===today()?S.usage.n:0}
 
 function paintAccount(){
   $("aname").textContent=S.name||"Guest"; $("av").textContent=(S.name||"G")[0].toUpperCase();
-  $("aplan").textContent=S.plan==="pro"?"Pro plan":"Free plan";
+  $("aplan").textContent=NAMES[S.plan]+" plan";
   document.documentElement.dataset.look=S.look;document.documentElement.dataset.theme=S.look!=="classic"?"light":S.theme==="auto"?"":S.theme;document.documentElement.style.setProperty("--fs",{S:"1rem",M:"1.15rem",L:"1.35rem"}[S.size]||"1.15rem");
   document.querySelectorAll(".plan").forEach(b=>b.setAttribute("aria-pressed",b.dataset.plan===S.plan));
-  $("usage").textContent=S.plan==="pro"?"Unlimited edits.":`${usedToday()} of ${FREE_LIMIT} free edits used today.`;
+  $("usage").textContent=`${usedToday()} of ${LIMITS[S.plan]} edits used today.`;
 }
 
 // navigation
@@ -234,9 +248,9 @@ document.querySelectorAll(".plan").forEach(b=>b.onclick=()=>{S.plan=b.dataset.pl
 
 // calling the server
 async function api(body){
-  if(S.plan==="free"&&usedToday()>=FREE_LIMIT)throw new Error("You've used your 10 free edits today. Switch to Pro from your account menu for unlimited edits.");
+  check();
   if(body.instruction&&body.v!==false)body.instruction+=` Use ${S.variant} English spelling.`;
-  const r=await fetch("/api/rewrite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const r=await slowFetch("/api/rewrite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||"Something went wrong.");
   S.usage={d:today(),n:usedToday()+1};save();paintAccount();
@@ -305,6 +319,11 @@ function paintHistory(){
       $("out").className="out";$("out").innerHTML=diffHtml(it.input,it.result);$("copy").hidden=$("reuse").hidden=false};
     c.appendChild(b);h.appendChild(c);
   });
+}
+async function slowFetch(u,o){
+  const t=setTimeout(()=>{$("toast").textContent="Waking the server up. The first request can take up to a minute.";$("toast").hidden=false},6000);
+  try{return await fetch(u,o)}catch{throw new Error("Couldn't reach the server. Check your connection and try again.")}
+  finally{clearTimeout(t);$("toast").hidden=true}
 }
 function addHist(label,input,result){if(!S.keepHistory)return;S.history.unshift({t:Date.now(),label,input,result});S.history=S.history.slice(0,30);save()}
 
@@ -375,7 +394,7 @@ bindNav();
 // home
 function paintHome(){
   const h=$("v-home"),who=S.name&&S.name!=="Guest"?", "+S.name:"",words=S.history.reduce((a,i)=>a+i.input.split(/\s+/).length,0);
-  h.innerHTML=`<h1>Welcome${esc(who)}</h1><p class="sub">Ask the assistant for help, or pick a tool below.</p>${CHATHTML}<div class="grid" style="margin:24px 0"><div class="card stat"><b>${usedToday()}</b><span>edits today${S.plan==="free"?" (limit "+FREE_LIMIT+")":""}</span></div><div class="card stat"><b>${S.history.length}</b><span>saved edits</span></div><div class="card stat"><b>${words}</b><span>words in saved edits</span></div><div class="card stat"><b>${S.plan==="pro"?"Pro":"Free"}</b><span>current plan</span></div></div><div class="grid" id="tcards"></div>`;
+  h.innerHTML=`<h1>Welcome${esc(who)}</h1><p class="sub">Ask the assistant for help, or pick a tool below.</p>${CHATHTML}<div class="grid" style="margin:24px 0"><div class="card stat"><b>${usedToday()}</b><span>edits today (limit ${LIMITS[S.plan]})</span></div><div class="card stat"><b>${S.history.length}</b><span>saved edits</span></div><div class="card stat"><b>${words}</b><span>words in saved edits</span></div><div class="card stat"><b>${NAMES[S.plan]}</b><span>current plan</span></div></div><div class="grid" id="tcards"></div>`;
   [["editor","Editor","Fix grammar and punctuation, or give your own instruction."],...TOOLS.map(t=>[t.id,t.name,t.sub]),["checker","AI checker","Estimate how AI-written a text sounds."],["stats","Text stats","Word count, reading time, reading level."]].forEach(([id,title,d])=>{
     const b=document.createElement("button");b.className="card tool";b.innerHTML=`<b>${title}</b><span>${d}</span>`;b.onclick=()=>nav(document.querySelector(`[data-view=${id}]`));$("tcards").appendChild(b)});
   wireChat();
@@ -400,8 +419,8 @@ async function sendChat(text){
   busy=false;if($("msgs"))paintChat();
 }
 async function chatApi(messages){
-  if(S.plan==="free"&&usedToday()>=FREE_LIMIT)throw new Error("You've used your 10 free edits today. Switch to Pro from your account menu for unlimited edits.");
-  const r=await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages})});
+  check();
+  const r=await slowFetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||"Something went wrong.");
   S.usage={d:today(),n:usedToday()+1};save();paintAccount();
@@ -419,6 +438,8 @@ $("sac").onchange=e=>{S.autocopy=e.target.checked;save()};
 $("skh").onchange=e=>{S.keepHistory=e.target.checked;save()};
 $("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:"application/json"}));a.download="redline-data.json";a.click()};
 $("wipe").onclick=()=>{if(confirm("Delete all your saved data in this browser? This can't be undone.")){try{localStorage.removeItem("redline")}catch{}location.reload()}};
+document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){const b=document.querySelector("main>section:not([hidden]) .go");if(b&&!b.disabled)b.click()}});
+document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}));
 paintAccount();paintHome();
 </script>
 </body>
