@@ -109,7 +109,13 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 @media(max-width:800px){.nav{width:auto}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .brand{display:flex;align-items:center;gap:10px}.brand svg{flex:none}
-#v-home .msgs{max-height:55vh}
+#v-home:not([hidden]){display:flex;flex-direction:column;height:calc(100vh - 76px);min-height:420px}
+#v-home .chat{flex:1;display:flex;flex-direction:column;min-height:0}
+#v-home .msgs{max-height:none;flex:1;min-height:0}
+#sugg:empty{display:none}#v-home #sugg:not(:empty){flex:1;align-content:center;justify-content:center}
+#cpre{display:flex;align-items:center;gap:10px;margin-bottom:8px}#cpre[hidden]{display:none}#cpre img{max-height:80px;border-radius:8px}
+.m img{display:block;max-width:220px;max-height:160px;border-radius:8px;margin-bottom:6px}.ask .sm{font-size:1.1rem;padding:0 14px}
+@media(max-width:800px){#v-home:not([hidden]){height:calc(100dvh - 190px)}}
 :focus-visible{outline:2px solid var(--pencil);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}.brand{padding:4px 10px}.sp{display:none}.acctwrap{margin-left:auto;width:auto}.acct small{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;min-width:180px;right:0}.panes{grid-template-columns:1fr}main{padding:20px 16px}}
 </style>
@@ -191,7 +197,7 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 </dialog>
 
 <dialog id="privacy" class="legal"><h2>Privacy policy</h2><p class="note">Last updated October 20, 2026</p>
-  <p><b>What we handle.</b> The text you submit to a tool or to the assistant chat, plus your settings, display name and edit history. Settings and history are saved in your own browser (local storage), not on our servers. There are no accounts yet.</p>
+  <p><b>What we handle.</b> The text and images you submit to a tool or to the assistant chat, plus your settings, display name and edit history. Settings and history are saved in your own browser (local storage), not on our servers. There are no accounts yet.</p>
   <p><b>How your text is used.</b> When you run a tool, your text goes to our server and then to Google's Gemini API, which writes the result. We don't save your text on our server. Google processes it under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't submit passwords, ID numbers, medical details or other sensitive or confidential text.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off history, clear it, download your data, or delete everything. Clearing your browser data does the same.</p>
@@ -400,19 +406,19 @@ function paintHome(){
 }
 
 // assistant chat
-let CHAT=[],busy=false;
-const CHATHTML=`<div class="card chat"><div style="text-align:right"><button type="button" class="sm" id="cn" hidden>New chat</button></div><div class="msgs" id="msgs" aria-live="polite"></div><div class="ex" id="sugg" style="margin:0 0 10px;max-width:none"></div><form class="ask" id="cf" style="margin:0"><input type="text" id="ci" maxlength="1000" placeholder="Ask anything about your writing..." aria-label="Message"><button class="go">Send</button></form></div>`;
+let CHAT=[],busy=false,pending=null;
+const CHATHTML=`<div class="card chat"><div style="text-align:right"><button type="button" class="sm" id="cn" hidden>New chat</button></div><div class="msgs" id="msgs" aria-live="polite"></div><div class="ex" id="sugg" style="margin:0 0 10px;max-width:none"></div><div id="cpre" hidden></div><form class="ask" id="cf" style="margin:0"><button type="button" class="sm" id="cat" aria-label="Attach an image" title="Attach an image">📎</button><input type="file" id="cfile" accept="image/*" hidden><input type="text" id="ci" maxlength="1000" placeholder="Ask anything, or attach an image..." aria-label="Message"><button class="go">Send</button></form></div>`;
 const SUGG=["Make my email sound friendlier","Give me a stronger opening line","When do I use who vs whom?","Help me write a cover letter"];
 function paintChat(){
   const m=$("msgs");m.textContent="";
-  CHAT.forEach(x=>{const d=document.createElement("div");d.className="m "+(x.role==="user"?"u":"a");d.textContent=x.text;m.appendChild(d)});
+  CHAT.forEach(x=>{const d=document.createElement("div");d.className="m "+(x.role==="user"?"u":"a");if(x.image){const i=document.createElement("img");i.src=`data:${x.image.mime};base64,${x.image.data}`;i.alt="Attached image";d.appendChild(i)}d.appendChild(document.createTextNode(x.text));m.appendChild(d)});
   m.hidden=!CHAT.length;m.scrollTop=m.scrollHeight;$("cn").hidden=!CHAT.length;$("cn").onclick=()=>{CHAT=[];paintChat()};
   const g=$("sugg");g.textContent="";
   if(!CHAT.length)SUGG.forEach(q=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=q;b.onclick=()=>sendChat(q);g.appendChild(b)});
 }
 async function sendChat(text){
-  text=text.trim();if(!text||busy)return;busy=true;
-  CHAT.push({role:"user",text},{role:"model",text:"Thinking..."});$("ci").value="";paintChat();
+  text=text.trim();const image=pending;if((!text&&!image)||busy)return;busy=true;
+  CHAT.push({role:"user",text:text||"What can you tell me about this image? If it has writing in it, help me improve it.",image},{role:"model",text:"Thinking..."});$("ci").value="";setPending(null);paintChat();
   const last=CHAT[CHAT.length-1];
   try{last.text=await chatApi(CHAT.slice(0,-1))}catch(e){last.text=e.message}
   busy=false;if($("msgs"))paintChat();
@@ -425,7 +431,24 @@ async function chatApi(messages){
   S.usage={d:today(),n:usedToday()+1};save();paintAccount();
   return d.result;
 }
-function wireChat(){paintChat();$("cf").onsubmit=e=>{e.preventDefault();sendChat($("ci").value)}}
+function setPending(img){
+  pending=img;const p=$("cpre");if(!p)return;p.hidden=!img;p.textContent="";
+  if(img){const i=document.createElement("img");i.src=`data:${img.mime};base64,${img.data}`;i.alt="Attached image";const b=document.createElement("button");b.type="button";b.className="sm";b.textContent="Remove";b.onclick=()=>setPending(null);p.append(i,b)}
+}
+async function pickImage(f){
+  if(!f)return;
+  try{
+    const url=URL.createObjectURL(f),im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=url});
+    const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+    setPending({mime:"image/jpeg",data:c.toDataURL("image/jpeg",.82).split(",")[1]});
+  }catch{const t=$("toast");t.textContent="Couldn't read that image. Try a JPG or PNG.";t.hidden=false;setTimeout(()=>t.hidden=true,3500)}
+}
+function wireChat(){
+  paintChat();setPending(pending);$("cf").onsubmit=e=>{e.preventDefault();sendChat($("ci").value)};
+  $("cat").onclick=()=>$("cfile").click();$("cfile").onchange=e=>{pickImage(e.target.files[0]);e.target.value=""};
+  $("ci").addEventListener("paste",e=>{const f=[...e.clipboardData.files].find(x=>x.type.startsWith("image/"));if(f){e.preventDefault();pickImage(f)}});
+}
 
 // settings
 function fillSettings(){$("slook").value=S.look;$("sname").value=S.name;$("stheme").value=S.theme;$("svariant").value=S.variant;$("ssize").value=S.size;$("shl").checked=S.highlight;$("sac").checked=S.autocopy;$("skh").checked=S.keepHistory;$("clearhist").textContent="Clear history"}
