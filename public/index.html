@@ -241,7 +241,7 @@ const $=id=>document.getElementById(id), esc=s=>s.replace(/[&<>]/g,c=>({"&":"&am
 const PRESETS=[["Fix grammar and punctuation","Fix grammar, spelling, and punctuation only. Do not change the wording or style otherwise."],["Rephrase","Rephrase this so it reads naturally and clearly, keeping the same meaning."],["Make it formal","Rewrite in a formal, professional tone."],["Make it casual","Rewrite in a relaxed, casual tone."],["Shorten","Make this shorter and tighter without losing the key points."],["Expand","Expand this with a little more detail and flow, without inventing facts."]];
 const LIMITS={free:10,pro:50,premium:100},NAMES={free:"Free",pro:"Pro",premium:"Premium"};
 // Accounts: fill these in after making a free Supabase project (see SETUP-ACCOUNTS.md)
-const SUPABASE_URL="",SUPABASE_KEY="";
+const SUPABASE_URL="https://yssvbqshbblwsumjxpwe.supabase.co",SUPABASE_KEY="sb_publishable_tk1h-3Yf7nwRBFpBLJpZ6A_JDzyl042";
 function check(){const n=LIMITS[S.plan]||10;if(usedToday()>=n)throw new Error(`You've used your ${n} edits for today.`+(S.plan==="premium"?" Come back tomorrow.":" Upgrade from your account menu for more."))}
 
 // saved data (browser only)
