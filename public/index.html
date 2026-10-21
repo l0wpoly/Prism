@@ -109,6 +109,7 @@ html[data-look=clean] .go,html[data-look=clean] .chip,html[data-look=clean] .seg
 @media(max-width:800px){.nav{width:auto}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .brand{display:flex;align-items:center;gap:10px}.brand svg{flex:none}
+#v-home .msgs{max-height:55vh}
 :focus-visible{outline:2px solid var(--pencil);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center}.brand{padding:4px 10px}.sp{display:none}.acctwrap{margin-left:auto;width:auto}.acct small{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;min-width:180px;right:0}.panes{grid-template-columns:1fr}main{padding:20px 16px}}
 </style>
@@ -393,10 +394,8 @@ bindNav();
 
 // home
 function paintHome(){
-  const h=$("v-home"),who=S.name&&S.name!=="Guest"?", "+S.name:"",words=S.history.reduce((a,i)=>a+i.input.split(/\s+/).length,0);
-  h.innerHTML=`<h1>Welcome${esc(who)}</h1><p class="sub">Ask the assistant for help, or pick a tool below.</p>${CHATHTML}<div class="grid" style="margin:24px 0"><div class="card stat"><b>${usedToday()}</b><span>edits today (limit ${LIMITS[S.plan]})</span></div><div class="card stat"><b>${S.history.length}</b><span>saved edits</span></div><div class="card stat"><b>${words}</b><span>words in saved edits</span></div><div class="card stat"><b>${NAMES[S.plan]}</b><span>current plan</span></div></div><div class="grid" id="tcards"></div>`;
-  [["editor","Editor","Fix grammar and punctuation, or give your own instruction."],...TOOLS.map(t=>[t.id,t.name,t.sub]),["checker","AI checker","Estimate how AI-written a text sounds."],["stats","Text stats","Word count, reading time, reading level."]].forEach(([id,title,d])=>{
-    const b=document.createElement("button");b.className="card tool";b.innerHTML=`<b>${title}</b><span>${d}</span>`;b.onclick=()=>nav(document.querySelector(`[data-view=${id}]`));$("tcards").appendChild(b)});
+  const who=S.name&&S.name!=="Guest"?", "+S.name:"";
+  $("v-home").innerHTML=`<h1>Welcome${esc(who)}</h1><p class="sub">Ask the assistant anything about your writing.</p>${CHATHTML}`;
   wireChat();
 }
 
