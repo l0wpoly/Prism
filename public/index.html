@@ -17,7 +17,7 @@ html[data-look=classic]{--bg:#E8EDF3;--side:#17202E;--sideink:#DCE3EE;--ac:#2B50
 @media(prefers-color-scheme:dark){html:not([data-theme=light]){--bg:#121823;--panel:#1A2230;--side:#0D121B;--sideink:#E7ECF3;--ink:#E7ECF3;--muted:#92A0B3;--line:#2C384A;--ac:#7C9BFF;--ai:#0E1424;--err:#FF8A80}}
 html[data-theme=dark]{--bg:#121823;--panel:#1A2230;--side:#0D121B;--sideink:#E7ECF3;--ink:#E7ECF3;--muted:#92A0B3;--line:#2C384A;--ac:#7C9BFF;--ai:#0E1424;--err:#FF8A80}
 *{box-sizing:border-box}[hidden]{display:none!important}
-body{margin:0;height:100dvh;display:grid;grid-template-columns:260px 1fr;background:var(--bg);color:var(--ink);font:1rem/1.55 "Instrument Sans",system-ui,sans-serif}
+html{height:100%}body{margin:0;height:100%;display:grid;grid-template-columns:260px 1fr;background:var(--bg);color:var(--ink);font:1rem/1.55 "Instrument Sans",system-ui,sans-serif}
 aside{background:var(--side);color:var(--sideink);padding:14px 10px;display:flex;flex-direction:column;gap:6px;min-height:0;border-right:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;font:500 1.5rem "Newsreader",Georgia,serif;padding:2px 8px 10px}
 button{font:inherit;color:inherit}
@@ -93,22 +93,25 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 <div id="toast" hidden role="status"></div>
 
 <dialog id="auth"><h2>Welcome to Prism</h2>
-  <p>Create a free account to get started. You can verify your email later.</p>
+  <p>Pick a name and a password. No email needed, and your account is ready instantly.</p>
   <div class="seg" role="group" aria-label="Log in or sign up"><button type="button" id="alogin" aria-pressed="true">Log in</button><button type="button" id="asignup" aria-pressed="false">Sign up</button></div>
   <form id="aform">
-    <div class="row"><label for="aemail">Email</label><input type="text" id="aemail" inputmode="email" autocomplete="email"></div>
+    <div class="row"><label for="aemail">Name</label><input type="text" id="aemail" autocomplete="username" maxlength="20" placeholder="letters, numbers, _ . -"></div>
     <div class="row"><label for="apass">Password</label><input type="password" id="apass" autocomplete="current-password"></div>
+    <p class="note">There's no email, so a forgotten password can't be reset. Pick one you'll remember.</p>
     <p class="note" id="amsg" aria-live="polite"></p>
     <div class="close"><button type="button" class="sm" data-close>Maybe later</button>&nbsp;<button class="go" id="asub">Log in</button></div>
   </form>
 </dialog>
 
 <dialog id="settings"><h2>Settings</h2>
-  <div class="row"><b>Account</b><span class="note" id="semail"></span><span><button class="sm" id="sverify">Verify email</button></span><span class="note" id="svmsg"></span></div>
+  <div class="row"><b>Account</b><span class="note" id="semail"></span><span><button class="sm" id="sverify">Log in or sign up</button></span></div>
   <div class="row"><label for="sname">Display name</label><input type="text" id="sname" maxlength="30"></div>
   <div class="row"><label for="slook">Look</label><select id="slook"><option value="office">Office</option><option value="clean">Clean white</option><option value="classic">Classic</option></select></div>
   <div class="row"><label for="stheme">Theme</label><select id="stheme"><option value="auto">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
-  <div class="row"><label for="sinstr">Instructions for the AI</label><textarea id="sinstr" rows="5" maxlength="1000" placeholder="Type anything you want it to do. For example: Talk like a pirate. Keep answers short. Explain things like I'm 12. Always give me examples."></textarea><span class="note"><span id="sinc">0</span> / 1000 · The AI follows this in every chat. Leave it empty for the normal Prism.</span></div>
+  <div class="row"><label for="sinstr">Instructions for the AI</label><textarea id="sinstr" rows="5" maxlength="1000" placeholder="Type anything you want it to do. For example: Talk like a pirate. Keep answers short. Explain things like I'm 12. Always give me examples."></textarea><span class="note"><span id="sinc">0</span> / 1000 · The AI follows this in every chat. Leave it empty for the normal Prism.</span>
+    <div style="display:flex;gap:8px;margin-top:6px"><input type="text" id="spname" maxlength="30" placeholder="Name this personality to save it" style="flex:1"><button class="sm" id="spsave" type="button">Save</button></div>
+    <span class="note" id="spmsg"></span><div id="splist"></div></div>
   <label class="chk"><input type="checkbox" id="skeep"> Save my chats in this browser</label>
   <div class="row"><b>Your data</b><span><button class="sm" id="sclear">Clear chats</button> <button class="sm" id="swipe">Delete everything</button></span></div>
   <div class="row"><span><button class="sm" data-dlg="privacy">Privacy policy</button> <button class="sm" data-dlg="terms">Terms of service</button></span></div>
@@ -116,7 +119,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 </dialog>
 
 <dialog id="privacy"><h2>Privacy policy</h2><p class="note">Last updated October 22, 2026</p>
-  <p><b>What we handle.</b> Your messages, any images you send, and any custom instructions you give the AI. Your settings, display name and saved chats stay in your own browser (local storage), not on our servers. If you create an account, your email address and password (the password is stored scrambled, never in plain text) are kept by our account provider, Supabase.</p>
+  <p><b>What we handle.</b> Your messages, any images you send, and any custom instructions you give the AI. Your settings, display name, saved chats and saved AI personalities stay in your own browser (local storage), not on our servers. If you create an account, your account name and password (the password is stored scrambled, never in plain text) are kept by our account provider, Supabase. Accounts don't use an email address, so a forgotten password can't be reset.</p>
   <p><b>How your messages are used.</b> They go to our server and then to Google's Gemini API, which writes the reply. We don't save them on our server. Google processes them under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't send passwords, ID numbers, medical details, private images, or other sensitive or confidential things.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off chat saving, clear your chats, or delete everything. Clearing your browser data does the same.</p>
@@ -143,7 +146,7 @@ const SUPABASE_URL = "https://yssvbqshbblwsumjxpwe.supabase.co";   // example: "
 const SUPABASE_KEY = "sb_publishable_tk1h-3Yf7nwRBFpBLJpZ6A_JDzyl042";   // the PUBLISHABLE key, starts with sb_publishable_
 // Never put the secret key (sb_secret_...) here.
 // ==========================================================
-let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,instr:"",chats:[]};
+let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,instr:"",personas:[],chats:[]};
 try{Object.assign(S,JSON.parse(localStorage.getItem("redline")||"{}"))}catch{}
 ["history","usage","plan","variant","highlight","autocopy","keepHistory","size"].forEach(k=>delete S[k]);
 const save=()=>{try{localStorage.setItem("redline",JSON.stringify({...S,chats:S.keep?S.chats.slice(0,20).map(c=>({id:c.id,title:c.title,msgs:c.msgs.filter(m=>!m.err&&m.text!=="Thinking...").map(m=>({role:m.role,text:m.text}))})):[]}))}catch{}};
@@ -151,7 +154,7 @@ const toast=(m,ms)=>{const t=$("toast");t.textContent=m;t.hidden=false;if(ms)set
 function apply(){
   const h=document.documentElement;h.dataset.look=S.look;h.dataset.theme=S.theme==="auto"?"":S.theme;
   $("aname").textContent=S.name||"Guest";$("av").textContent=(S.name||"G")[0].toUpperCase();
-  $("asub2").textContent=S.session?(S.session.verified?"Signed in":"Signed in · unverified"):"Not signed in";
+  $("asub2").textContent=S.session?"Signed in":"Not signed in";
   $("mauth").textContent=S.session?"Sign out":"Log in or sign up";
   $("hello").textContent=`Hi${S.name&&S.name!=="Guest"?", "+S.name:""}! What can I help with?`;
 }
@@ -233,17 +236,17 @@ let mode="login";
 function setMode(m){mode=m;$("alogin").setAttribute("aria-pressed",m==="login");$("asignup").setAttribute("aria-pressed",m==="signup");$("asub").textContent=m==="login"?"Log in":"Create account";$("amsg").textContent="";$("apass").autocomplete=m==="login"?"current-password":"new-password"}
 $("alogin").onclick=()=>setMode("login");$("asignup").onclick=()=>setMode("signup");
 $("aform").onsubmit=async e=>{
-  e.preventDefault();const email=$("aemail").value.trim(),password=$("apass").value,msg=$("amsg");msg.className="note";msg.textContent="";
-  if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent="Enter a valid email address.";msg.className="note err";return}
-  if(password.length<6){msg.textContent="Your password needs at least 6 characters.";msg.className="note err";return}
-  $("asub").disabled=true;
+  e.preventDefault();const name=$("aemail").value.trim().toLowerCase(),password=$("apass").value,msg=$("amsg");msg.className="note";msg.textContent="";
+  const bad=t=>{msg.textContent=t;msg.className="note err"};
+  if(!/^[a-z0-9_.-]{3,20}$/.test(name))return bad("Pick a name with 3 to 20 letters, numbers, _ . or -");
+  if(password.length<6)return bad("Your password needs at least 6 characters.");
+  $("asub").disabled=true;const email=name+"@prism-users.com";
   try{
-    const d=mode==="login"?await authCall("token?grant_type=password",{email,password}):await authCall("signup",{email,password});
-    if(d.access_token){
-      S.session={access_token:d.access_token,refresh_token:d.refresh_token,email:d.user?.email||email,verified:!!d.user?.user_metadata?.verified,exp:Date.now()+(d.expires_in||3600)*1000};
-      if(S.name==="Guest")S.name=email.split("@")[0];save();apply();$("apass").value="";$("auth").close();
-    }else msg.textContent="Almost done! Check your email to confirm your account, then log in."
-  }catch(err){msg.textContent=err.message;msg.className="note err"}
+    const d=mode==="login"?await authCall("token?grant_type=password",{email,password}):await authCall("signup",{email,password,data:{name}});
+    if(!d.access_token)throw new Error("Your Supabase project still wants email confirmation. Turn off Confirm email there, then try again.");
+    S.session={access_token:d.access_token,refresh_token:d.refresh_token,name,exp:Date.now()+(d.expires_in||3600)*1000};
+    S.name=name;save();apply();$("apass").value="";$("auth").close();
+  }catch(err){bad(/registered|already/i.test(err.message)?"That name is taken. Try another one.":/invalid login/i.test(err.message)?"Wrong name or password.":err.message)}
   finally{$("asub").disabled=false}
 };
 $("mauth").onclick=()=>{
@@ -251,37 +254,35 @@ $("mauth").onclick=()=>{
   if(S.session){authCall("logout",{},S.session.access_token).catch(()=>{});S.session=null;save();apply()}
   else{setMode("login");$("auth").showModal()}
 };
-function paintVerify(){
-  const a=S.session;$("svmsg").textContent="";
-  $("semail").textContent=a?`${a.email||"Your account"} · ${a.verified?"Verified ✓":"Not verified"}`:"You're not signed in.";
-  $("sverify").hidden=!!(a&&a.verified);$("sverify").textContent=a?"Verify email":"Log in or sign up";
-}
-$("sverify").onclick=async()=>{
-  if(!S.session){$("settings").close();setMode("signup");$("auth").showModal();return}
-  $("sverify").disabled=true;
-  try{await authCall("otp",{email:S.session.email,create_user:false});$("svmsg").textContent="Sent! Open the email and click the link to finish."}
-  catch(err){$("svmsg").textContent=err.message}
-  finally{$("sverify").disabled=false}
-};
-// coming back from an email link (verify or confirm)
-if(location.hash.includes("access_token=")){
-  const q=new URLSearchParams(location.hash.slice(1)),tok=q.get("access_token");
-  if(tok&&q.get("type")!=="recovery"&&SUPABASE_URL){
-    S.session={access_token:tok,refresh_token:q.get("refresh_token"),email:"",verified:true,exp:Date.now()+(+q.get("expires_in")||3600)*1000};save();
-    fetch(SUPABASE_URL+"/auth/v1/user",{method:"PUT",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,Authorization:"Bearer "+tok},body:JSON.stringify({data:{verified:true}})}).catch(()=>{});
-    fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+tok}}).then(r=>r.json()).then(u=>{if(u.email){S.session.email=u.email;if(S.name==="Guest")S.name=u.email.split("@")[0];save();apply()}}).catch(()=>{});
-    setTimeout(()=>toast("Email verified. You're all set!",4000),500);
-  }
-  history.replaceState(null,"",location.pathname);
-}
+function paintVerify(){const a=S.session;$("semail").textContent=a?"Signed in as "+(a.name||S.name):"You're not signed in.";$("sverify").hidden=!!a}
+$("sverify").onclick=()=>{$("settings").close();setMode("signup");$("auth").showModal()};
 
 // settings
 $("mset").onclick=()=>{
   $("menu").hidden=true;paintVerify();
-  $("sname").value=S.name;$("sinstr").value=S.instr||"";$("sinc").textContent=($("sinstr").value||"").length;$("slook").value=S.look;$("stheme").value=S.theme;$("skeep").checked=S.keep;$("sclear").textContent="Clear chats";
+  $("sname").value=S.name;$("sinstr").value=S.instr||"";$("sinc").textContent=($("sinstr").value||"").length;paintPersonas();$("slook").value=S.look;$("stheme").value=S.theme;$("skeep").checked=S.keep;$("sclear").textContent="Clear chats";
   $("settings").showModal();
 };
-$("sinstr").oninput=e=>{S.instr=e.target.value.slice(0,1000);$("sinc").textContent=S.instr.length;save()};
+$("sinstr").oninput=e=>{S.instr=e.target.value.slice(0,1000);$("sinc").textContent=S.instr.length;save();paintPersonas()};
+function paintPersonas(){
+  const l=$("splist");l.textContent="";
+  S.personas.forEach((p,i)=>{
+    const r=document.createElement("div");r.style.cssText="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)";
+    const n=document.createElement("span");n.textContent=p.name;n.style.flex="1";
+    const u=document.createElement("button");u.type="button";u.className="sm";u.textContent=S.instr===p.text?"In use":"Use";u.onclick=()=>{S.instr=p.text;$("sinstr").value=p.text;$("sinc").textContent=p.text.length;save();paintPersonas()};
+    const d=document.createElement("button");d.type="button";d.className="sm";d.textContent="Delete";d.onclick=()=>{S.personas.splice(i,1);save();paintPersonas()};
+    r.append(n,u,d);l.appendChild(r);
+  });
+}
+const pm=t=>{$("spmsg").textContent=t;setTimeout(()=>$("spmsg").textContent="",2500)};
+$("spsave").onclick=()=>{
+  const name=$("spname").value.trim(),text=$("sinstr").value.trim();
+  if(!text)return pm("Type some instructions above first.");
+  if(!name)return pm("Give it a name first.");
+  const i=S.personas.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(i>=0)S.personas[i]={name,text};else S.personas.push({name,text});
+  S.personas=S.personas.slice(0,20);$("spname").value="";save();paintPersonas();pm("Saved!");
+};
 $("sname").oninput=e=>{S.name=e.target.value.trim()||"Guest";save();apply()};
 $("slook").onchange=e=>{S.look=e.target.value;save();apply()};
 $("stheme").onchange=e=>{S.theme=e.target.value;save();apply()};
