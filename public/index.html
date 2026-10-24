@@ -17,7 +17,7 @@ html[data-look=classic]{--bg:#E8EDF3;--side:#17202E;--sideink:#DCE3EE;--ac:#2B50
 @media(prefers-color-scheme:dark){html:not([data-theme=light]){--bg:#121823;--panel:#1A2230;--side:#0D121B;--sideink:#E7ECF3;--ink:#E7ECF3;--muted:#92A0B3;--line:#2C384A;--ac:#7C9BFF;--ai:#0E1424;--err:#FF8A80}}
 html[data-theme=dark]{--bg:#121823;--panel:#1A2230;--side:#0D121B;--sideink:#E7ECF3;--ink:#E7ECF3;--muted:#92A0B3;--line:#2C384A;--ac:#7C9BFF;--ai:#0E1424;--err:#FF8A80}
 *{box-sizing:border-box}[hidden]{display:none!important}
-html{height:100%}body{margin:0;height:100%;display:grid;grid-template-columns:260px 1fr;background:var(--bg);color:var(--ink);font:1rem/1.55 "Instrument Sans",system-ui,sans-serif}
+html,body{height:100%;overflow:hidden}body{position:fixed;inset:0;margin:0;display:grid;grid-template-columns:260px 1fr;grid-template-rows:minmax(0,1fr);background:var(--bg);color:var(--ink);font:1rem/1.55 "Instrument Sans",system-ui,sans-serif}
 aside{background:var(--side);color:var(--sideink);padding:14px 10px;display:flex;flex-direction:column;gap:6px;min-height:0;border-right:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;font:500 1.5rem "Newsreader",Georgia,serif;padding:2px 8px 10px}
 button{font:inherit;color:inherit}
@@ -68,7 +68,7 @@ input[type=text],input[type=password],select{font:inherit;padding:10px 13px;bord
 ::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--muted) 70%,transparent);background-clip:content-box}
 textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-@media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0}.rec{display:none}.new{margin-left:auto}.acctwrap{width:auto}.acct small,.acct span span{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;right:0;min-width:180px}main{padding:12px}}
+@media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}aside{flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0}.rec{display:none}.new{margin-left:auto}.acctwrap{width:auto}.acct small,.acct span span{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;right:0;min-width:180px}main{padding:12px}}
 </style>
 </head>
 <body>
