@@ -62,6 +62,11 @@ dialog p{font-size:.92rem}.note{color:var(--muted);font-size:.85rem}.note.err{co
 input[type=text],input[type=password],select{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
 .seg{display:flex;gap:8px;margin-bottom:16px}.seg button{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel);cursor:pointer}.seg button[aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--ai)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 16px;border-radius:8px;font-size:.9rem;z-index:50;max-width:90vw}
+*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--muted) 45%,transparent) transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted) 40%,transparent);border-radius:999px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--muted) 70%,transparent);background-clip:content-box}
+textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0}.rec{display:none}.new{margin-left:auto}.acctwrap{width:auto}.acct small,.acct span span{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;right:0;min-width:180px}main{padding:12px}}
 </style>
@@ -103,6 +108,7 @@ input[type=text],input[type=password],select{font:inherit;padding:10px 13px;bord
   <div class="row"><label for="sname">Display name</label><input type="text" id="sname" maxlength="30"></div>
   <div class="row"><label for="slook">Look</label><select id="slook"><option value="office">Office</option><option value="clean">Clean white</option><option value="classic">Classic</option></select></div>
   <div class="row"><label for="stheme">Theme</label><select id="stheme"><option value="auto">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+  <div class="row"><label for="sinstr">Instructions for the AI</label><textarea id="sinstr" rows="5" maxlength="1000" placeholder="Type anything you want it to do. For example: Talk like a pirate. Keep answers short. Explain things like I'm 12. Always give me examples."></textarea><span class="note"><span id="sinc">0</span> / 1000 · The AI follows this in every chat. Leave it empty for the normal Prism.</span></div>
   <label class="chk"><input type="checkbox" id="skeep"> Save my chats in this browser</label>
   <div class="row"><b>Your data</b><span><button class="sm" id="sclear">Clear chats</button> <button class="sm" id="swipe">Delete everything</button></span></div>
   <div class="row"><span><button class="sm" data-dlg="privacy">Privacy policy</button> <button class="sm" data-dlg="terms">Terms of service</button></span></div>
@@ -110,7 +116,7 @@ input[type=text],input[type=password],select{font:inherit;padding:10px 13px;bord
 </dialog>
 
 <dialog id="privacy"><h2>Privacy policy</h2><p class="note">Last updated October 22, 2026</p>
-  <p><b>What we handle.</b> Your messages and any images you send. Your settings, display name and saved chats stay in your own browser (local storage), not on our servers. If you create an account, your email address and password (the password is stored scrambled, never in plain text) are kept by our account provider, Supabase.</p>
+  <p><b>What we handle.</b> Your messages, any images you send, and any custom instructions you give the AI. Your settings, display name and saved chats stay in your own browser (local storage), not on our servers. If you create an account, your email address and password (the password is stored scrambled, never in plain text) are kept by our account provider, Supabase.</p>
   <p><b>How your messages are used.</b> They go to our server and then to Google's Gemini API, which writes the reply. We don't save them on our server. Google processes them under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't send passwords, ID numbers, medical details, private images, or other sensitive or confidential things.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off chat saving, clear your chats, or delete everything. Clearing your browser data does the same.</p>
@@ -137,7 +143,7 @@ const SUPABASE_URL = "https://yssvbqshbblwsumjxpwe.supabase.co";   // example: "
 const SUPABASE_KEY = "sb_publishable_tk1h-3Yf7nwRBFpBLJpZ6A_JDzyl042";   // the PUBLISHABLE key, starts with sb_publishable_
 // Never put the secret key (sb_secret_...) here.
 // ==========================================================
-let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,chats:[]};
+let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,instr:"",chats:[]};
 try{Object.assign(S,JSON.parse(localStorage.getItem("redline")||"{}"))}catch{}
 ["history","usage","plan","variant","highlight","autocopy","keepHistory","size"].forEach(k=>delete S[k]);
 const save=()=>{try{localStorage.setItem("redline",JSON.stringify({...S,chats:S.keep?S.chats.slice(0,20).map(c=>({id:c.id,title:c.title,msgs:c.msgs.filter(m=>!m.err&&m.text!=="Thinking...").map(m=>({role:m.role,text:m.text}))})):[]}))}catch{}};
@@ -185,7 +191,7 @@ async function send(text){
   cur.msgs.push({role:"user",text:text||"What can you tell me about this image? If it has writing in it, help me improve it.",image});
   const bot={role:"model",text:"Thinking..."},msgs=cur.msgs.filter(m=>!m.err).map(m=>({role:m.role,text:m.text,image:m.image}));
   cur.msgs.push(bot);$("ci").value="";setPending(null);render();
-  try{bot.text=await post("/api/chat",{messages:msgs})}catch(e){bot.text=e.message;bot.err=1}
+  try{bot.text=await post("/api/chat",{messages:msgs,instructions:S.instr||""})}catch(e){bot.text=e.message;bot.err=1}
   busy=false;save();render();
 }
 function setPending(img){
@@ -272,9 +278,10 @@ if(location.hash.includes("access_token=")){
 // settings
 $("mset").onclick=()=>{
   $("menu").hidden=true;paintVerify();
-  $("sname").value=S.name;$("slook").value=S.look;$("stheme").value=S.theme;$("skeep").checked=S.keep;$("sclear").textContent="Clear chats";
+  $("sname").value=S.name;$("sinstr").value=S.instr||"";$("sinc").textContent=($("sinstr").value||"").length;$("slook").value=S.look;$("stheme").value=S.theme;$("skeep").checked=S.keep;$("sclear").textContent="Clear chats";
   $("settings").showModal();
 };
+$("sinstr").oninput=e=>{S.instr=e.target.value.slice(0,1000);$("sinc").textContent=S.instr.length;save()};
 $("sname").oninput=e=>{S.name=e.target.value.trim()||"Guest";save();apply()};
 $("slook").onchange=e=>{S.look=e.target.value;save();apply()};
 $("stheme").onchange=e=>{S.theme=e.target.value;save();apply()};
