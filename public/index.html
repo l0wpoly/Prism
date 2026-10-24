@@ -67,6 +67,7 @@ input[type=text],input[type=password],select{font:inherit;padding:10px 13px;bord
 ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted) 40%,transparent);border-radius:999px;border:3px solid transparent;background-clip:content-box}
 ::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--muted) 70%,transparent);background-clip:content-box}
 textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}
+.pl{display:inline-block;margin:6px 0 0;padding:6px 16px;border:0;border-radius:999px;background:var(--ac);color:var(--ai);font-weight:600;cursor:pointer}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}aside{flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0}.rec{display:none}.new{margin-left:auto}.acctwrap{width:auto}.acct small,.acct span span{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;right:0;min-width:180px}main{padding:12px}}
 </style>
@@ -91,6 +92,12 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   <footer><button class="link" data-dlg="privacy">Privacy policy</button><button class="link" data-dlg="terms">Terms of service</button></footer>
 </main>
 <div id="toast" hidden role="status"></div>
+
+<dialog id="game" style="width:min(900px,96vw)">
+  <div class="close" style="margin:0 0 10px;justify-content:space-between"><b>Game</b><span><button class="sm" id="grestart">Restart</button> <button class="sm" data-close>Close</button></span></div>
+  <iframe id="gframe" sandbox="allow-scripts" title="Game" style="width:100%;height:68vh;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>
+  <p class="note">Games run in a locked box and can't touch your account. If one doesn't work, tell the AI what went wrong and ask it to fix it.</p>
+</dialog>
 
 <dialog id="auth"><h2>Welcome to Prism</h2>
   <p>Pick a name and a password. No email needed, and your account is ready instantly.</p>
@@ -142,8 +149,8 @@ const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp
 // --supabase url and key     <-- PUT THEM HERE, between the quotes
 // (Press Ctrl+F and search for  --supabase  to find this spot)
 // ==========================================================
-const SUPABASE_URL = "https://yssvbqshbblwsumjxpwe.supabase.co";   // example: "https://abcdxyz.supabase.co"
-const SUPABASE_KEY = "sb_publishable_tk1h-3Yf7nwRBFpBLJpZ6A_JDzyl042";   // the PUBLISHABLE key, starts with sb_publishable_
+const SUPABASE_URL = "";   // example: "https://abcdxyz.supabase.co"
+const SUPABASE_KEY = "";   // the PUBLISHABLE key, starts with sb_publishable_
 // Never put the secret key (sb_secret_...) here.
 // ==========================================================
 let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,instr:"",personas:[],chats:[]};
@@ -165,7 +172,7 @@ const newChat=()=>{cur={id:Date.now(),title:"New chat",msgs:[]}};
 function md(t){
   const bl=[];t=t.replace(/```(?:\w*\n)?([\s\S]*?)```/g,(_,c)=>{bl.push(c);return"\u0000"+(bl.length-1)+"\u0000"});
   t=esc(t).replace(/`([^`\n]+)`/g,"<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>").replace(/^#{1,3} +(.+)$/gm,"<b>$1</b>").replace(/^[ \t]*[-*] +/gm,"• ");
-  return t.replace(/\u0000(\d+)\u0000/g,(_,i)=>"<pre>"+esc(bl[i].replace(/\n$/,""))+"</pre>");
+  return t.replace(/\u0000(\d+)\u0000/g,(_,i)=>'<pre class="code">'+esc(bl[i].replace(/\n$/,""))+"</pre>");
 }
 function render(){
   const m=$("msgs"),has=!!cur.msgs.length;m.textContent="";$("empty").hidden=has;m.hidden=!has;$("sugg").hidden=has;
@@ -173,7 +180,8 @@ function render(){
     const d=document.createElement("div");d.className="m "+(x.role==="user"?"u":"a")+(x.err?" err":"");
     if(x.image){const i=document.createElement("img");i.src=`data:${x.image.mime};base64,${x.image.data}`;i.alt="Attached image";d.appendChild(i)}
     if(x.role==="user")d.appendChild(document.createTextNode(x.text));
-    else{const b=document.createElement("div");b.innerHTML=md(x.text);d.appendChild(b)}
+    else{const b=document.createElement("div");b.innerHTML=md(x.text);
+      b.querySelectorAll("pre.code").forEach(p=>{const c=p.textContent;if(/<!doctype html|<html|<canvas|<script/i.test(c)){const g=document.createElement("button");g.type="button";g.className="pl";g.textContent="▶ Play";g.onclick=()=>playGame(c);p.before(g)}});d.appendChild(b)}
     if(x.role==="model"&&!x.err&&x.text!=="Thinking..."){const c=document.createElement("button");c.className="cp";c.textContent="Copy";c.onclick=async()=>{try{await navigator.clipboard.writeText(x.text);c.textContent="Copied";setTimeout(()=>c.textContent="Copy",1400)}catch{}};d.appendChild(c)}
     m.appendChild(d);
   });
@@ -210,11 +218,22 @@ async function pickImage(f){
     setPending({mime:"image/jpeg",data:c.toDataURL("image/jpeg",.82).split(",")[1]});
   }catch{toast("Couldn't read that image. Try a JPG or PNG.",3500)}
 }
-["Explain something in simple terms","Help me write a message","Give me ideas for a project","What can you do?"].forEach(q=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=q;b.onclick=()=>send(q);$("sugg").appendChild(b)});
+["Explain something in simple terms","Help me write a message","Give me ideas for a project","Make me a simple game"].forEach(q=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=q;b.onclick=()=>send(q);$("sugg").appendChild(b)});
 $("cf").onsubmit=e=>{e.preventDefault();send($("ci").value)};
 $("cat").onclick=()=>$("cfile").click();$("cfile").onchange=e=>{pickImage(e.target.files[0]);e.target.value=""};
 $("ci").addEventListener("paste",e=>{const f=[...e.clipboardData.files].find(x=>x.type.startsWith("image/"));if(f){e.preventDefault();pickImage(f)}});
 $("newc").onclick=()=>{newChat();setPending(null);render();$("ci").focus()};
+
+// games: run the AI's HTML in a locked box with no network
+function playGame(code){
+  const csp=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:">`;
+  const h=/<head[^>]*>/i,t=/<html[^>]*>/i;
+  const doc=h.test(code)?code.replace(h,m=>m+csp):t.test(code)?code.replace(t,m=>m+csp):csp+code;
+  $("gframe").srcdoc=doc;$("game").showModal();$("gframe").focus();
+}
+$("gframe").onload=()=>$("gframe").focus();
+$("grestart").onclick=()=>{const d=$("gframe").srcdoc;$("gframe").srcdoc="";setTimeout(()=>$("gframe").srcdoc=d,60)};
+$("game").addEventListener("close",()=>{$("gframe").srcdoc=""});
 
 // menus and dialogs
 $("acct").onclick=()=>{$("menu").hidden=!$("menu").hidden};
