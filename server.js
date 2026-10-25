@@ -16,7 +16,7 @@ const KEY = process.env.GEMINI_API_KEY;
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 const GAME_MODEL = process.env.GEMINI_GAME_MODEL || "gemini-3.8-flash"; // smarter model, used only for games
 const GAME_WORDS = /\b(games?|snake|pong|tetris|flappy|platformer|arcade|breakout|minesweeper|2048|tic[- ]?tac[- ]?toe|space invaders|pac-?man|maze|shooter)\b/i;
-const GAME_RULES = " GAME MODE: The person wants a game. Put your full effort into it. Plan first, then write ONE complete, polished HTML file in a single fenced html code block: all CSS and JavaScript inline, no external libraries, images, fonts or network calls. Include a title or start screen, clear controls (keyboard and touch), a score, difficulty that ramps up, a game over screen with a restart button, a responsive canvas that fits any window size, smooth requestAnimationFrame timing, and good-looking visuals with animation and simple sound effects made with the Web Audio API (only start audio after a click or key press). Double-check the logic for bugs before you answer, and never leave anything unfinished or as a placeholder. After the code, add one short line explaining the controls.";
+const GAME_RULES = " GAME MODE: The person wants a game. Put your full effort into it. Plan first, then write ONE complete, polished HTML file in a single fenced html code block: all CSS and JavaScript inline, no external libraries, images, fonts or network calls. Include a title or start screen, clear controls (keyboard and touch), a score, difficulty that ramps up, a game over screen with a restart button, a responsive canvas that fits any window size, smooth requestAnimationFrame timing, and good-looking visuals with animation and simple sound effects made with the Web Audio API (only start audio after a click or key press). Double-check the logic for bugs before you answer, and never leave anything unfinished or as a placeholder. When changing or fixing a game you already made, ALWAYS send the COMPLETE updated HTML file again in one html code block, from <!DOCTYPE html> to </html>. Never send only the changed part, a diff, or text like 'rest of the code unchanged'. After the code, add one short line explaining the controls.";
 const MAX_CHARS = 5000;
 
 const SYSTEM = `You are a writing assistant inside a text editor.
@@ -111,7 +111,7 @@ async function handleChat(req, res) {
   const list = Array.isArray(body.messages) ? body.messages : [];
   let imgs = 0; // keep only the 3 newest images
   const msgs = list.slice(-20).reverse().map((m) => {
-    const parts = [{ text: String(m.text || "").slice(0, 6000) || "Describe this image." }];
+    const parts = [{ text: String(m.text || "").slice(0, m.role === "model" ? 60000 : 6000) || "Describe this image." }];
     const im = m.image;
     if (m.role !== "model" && im && imgs < 3 && ["image/jpeg", "image/png", "image/webp"].includes(im.mime) && typeof im.data === "string" && im.data.length < 1500000) {
       parts.unshift({ inlineData: { mimeType: im.mime, data: im.data } }); imgs++;
@@ -137,7 +137,7 @@ async function handleChat(req, res) {
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: system }] },
           contents: msgs,
-          generationConfig: { temperature: gameMode ? 0.8 : 0.6, ...(gameMode ? { maxOutputTokens: 30000 } : {}), thinkingConfig: { thinkingLevel: level } },
+          generationConfig: { temperature: gameMode ? 0.8 : 0.6, ...(gameMode ? { maxOutputTokens: 60000 } : {}), thinkingConfig: { thinkingLevel: level } },
         }),
       });
       const data = await r.json();
@@ -216,4 +216,3 @@ http.createServer(async (req, res) => {
     res.end(buf);
   });
 }).listen(PORT, () => console.log(`Running at http://localhost:${PORT}`));
-
