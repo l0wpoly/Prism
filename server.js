@@ -139,11 +139,59 @@ async function handleChat(req, res) {
   }
 }
 
+// ---- Accounts: name + password, stored in your Supabase database ----
+const crypto = require("crypto");
+const SB_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
+const SB_KEY = process.env.SUPABASE_SECRET_KEY;
+const TOKEN_SECRET = process.env.TOKEN_SECRET || "";
+
+function sign(name) {
+  const p = Buffer.from(JSON.stringify({ n: name, exp: Date.now() + 30 * 864e5 })).toString("base64url");
+  return p + "." + crypto.createHmac("sha256", TOKEN_SECRET).update(p).digest("base64url");
+}
+const sb = (path, opts = {}) => fetch(SB_URL + "/rest/v1/" + path, {
+  ...opts,
+  headers: { apikey: SB_KEY, "Content-Type": "application/json", ...(opts.headers || {}) },
+  signal: AbortSignal.timeout(15000),
+});
+
+async function handleAuth(req, res, mode) {
+  if (!SB_URL || !SB_KEY || !TOKEN_SECRET) return send(res, 500, { error: "Accounts aren't switched on yet." });
+  if (limited(req.socket.remoteAddress)) return send(res, 429, { error: "Too many tries. Wait a minute and try again." });
+  let body;
+  try { body = JSON.parse(await readBody(req)); } catch { return send(res, 400, { error: "Bad request." }); }
+  const name = String(body.name || "").trim().toLowerCase();
+  const password = String(body.password || "");
+  if (!/^[a-z0-9_.-]{3,20}$/.test(name)) return send(res, 400, { error: "Pick a name with 3 to 20 letters, numbers, _ . or -" });
+  if (password.length < 6 || password.length > 100) return send(res, 400, { error: "Your password needs 6 to 100 characters." });
+  try {
+    if (mode === "signup") {
+      const salt = crypto.randomBytes(16).toString("hex");
+      const hash = crypto.scryptSync(password, salt, 32).toString("hex");
+      const r = await sb("users", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ name, salt, hash }) });
+      if (r.status === 409) return send(res, 409, { error: "That name is taken. Try another one." });
+      if (!r.ok) { console.error("Supabase error:", await r.text()); return send(res, 502, { error: "Couldn't create the account. Try again." }); }
+    } else {
+      const r = await sb("users?name=eq." + encodeURIComponent(name) + "&select=salt,hash");
+      if (!r.ok) { console.error("Supabase error:", await r.text()); return send(res, 502, { error: "Couldn't log in. Try again." }); }
+      const row = (await r.json())[0];
+      const ok = row && crypto.timingSafeEqual(Buffer.from(row.hash, "hex"), crypto.scryptSync(password, row.salt, 32));
+      if (!ok) return send(res, 401, { error: "Wrong name or password." });
+    }
+    send(res, 200, { name, token: sign(name) });
+  } catch (e) {
+    console.error(e);
+    send(res, 502, { error: "Couldn't reach the account service. Try again." });
+  }
+}
+
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
 
 http.createServer(async (req, res) => {
   if (req.method === "POST" && req.url === "/api/rewrite") return handleRewrite(req, res);
   if (req.method === "POST" && req.url === "/api/chat") return handleChat(req, res);
+  if (req.method === "POST" && req.url === "/api/signup") return handleAuth(req, res, "signup");
+  if (req.method === "POST" && req.url === "/api/login") return handleAuth(req, res, "login");
   if (req.method !== "GET") return send(res, 405, { error: "Not allowed" });
   const urlPath = req.url.split("?")[0];
   const file = path.join(__dirname, "public", urlPath === "/" ? "index.html" : urlPath);
