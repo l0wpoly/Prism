@@ -96,7 +96,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 
 <dialog id="game" style="width:min(900px,96vw)">
   <div class="close" style="margin:0 0 10px;justify-content:space-between"><b>Game</b><span><button class="sm" id="grestart">Restart</button> <button class="sm" data-close>Close</button></span></div>
-  <iframe id="gframe" sandbox="allow-scripts" title="Game" style="width:100%;height:68vh;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>
+  <div id="gwrap"></div>
   <div id="gerr" class="note err" hidden style="margin:8px 0"><span id="gerrt"></span> <button class="sm" id="gfix">Ask the AI to fix it</button></div>
   <p class="note">Games run in a locked box and can't touch your account. If one doesn't work, tell the AI what went wrong and ask it to fix it.</p>
 </dialog>
@@ -233,17 +233,22 @@ $("newc").onclick=()=>{newChat();setPending(null);render();$("ci").focus()};
 
 // games: run the AI's HTML in a locked box with no network
 const HOOK="<scr"+"ipt>addEventListener('error',function(e){parent.postMessage({neoErr:(e.message||'Error')+' (line '+e.lineno+')'},'*')});addEventListener('unhandledrejection',function(e){parent.postMessage({neoErr:String(e.reason)},'*')});setTimeout(function(){if(!document.body||(!document.body.innerText.trim()&&!document.querySelector('canvas,svg,img,button,input')))parent.postMessage({neoErr:'The page is blank.'},'*')},2500)</scr"+"ipt>";
-let lastErr="";
+let lastErr="",curDoc="";
+function mountGame(doc){
+  const w=$("gwrap");w.textContent="";
+  const f=document.createElement("iframe");f.id="gframe";f.title="Game";f.setAttribute("sandbox","allow-scripts");
+  f.style.cssText="width:100%;height:68vh;border:1px solid var(--line);border-radius:8px;background:#fff;display:block";
+  w.appendChild(f);f.srcdoc=doc;f.onload=()=>f.focus();
+}
 function playGame(code){
   let csp=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:">`;
   csp+=HOOK;const h=/<head[^>]*>/i,t=/<html[^>]*>/i;
   const doc=h.test(code)?code.replace(h,m=>m+csp):t.test(code)?code.replace(t,m=>m+csp):csp+code;
-  $("gerr").hidden=true;$("gframe").srcdoc=doc;$("game").showModal();$("gframe").focus();
+  curDoc=doc;$("gerr").hidden=true;$("game").showModal();mountGame(doc);
 }
-$("gframe").onload=()=>$("gframe").focus();
-$("grestart").onclick=()=>{const d=$("gframe").srcdoc;$("gframe").srcdoc="";setTimeout(()=>$("gframe").srcdoc=d,60)};
-$("game").addEventListener("close",()=>{$("gframe").srcdoc="";$("gerr").hidden=true});
-addEventListener("message",e=>{if(e.source!==$("gframe").contentWindow||!e.data||!e.data.neoErr)return;lastErr=String(e.data.neoErr).slice(0,300);$("gerrt").textContent="The game hit a problem: "+lastErr;$("gerr").hidden=false});
+$("grestart").onclick=()=>{$("gerr").hidden=true;mountGame(curDoc)};
+$("game").addEventListener("close",()=>{$("gwrap").textContent="";$("gerr").hidden=true});
+addEventListener("message",e=>{if(e.source!==($("gframe")||{}).contentWindow||!e.data||!e.data.neoErr)return;lastErr=String(e.data.neoErr).slice(0,300);$("gerrt").textContent="The game hit a problem: "+lastErr;$("gerr").hidden=false});
 $("gfix").onclick=()=>{$("game").close();send("The game has an error: "+lastErr+". Please fix it and send the complete game again.")};
 
 // menus and dialogs
