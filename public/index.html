@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prism: AI assistant</title>
-<meta name="description" content="Prism is a friendly AI assistant. Ask anything, or attach an image.">
+<title>Neo: AI assistant</title>
+<meta name="description" content="Neo is a friendly AI assistant. Ask anything, or attach an image.">
 <meta name="theme-color" content="#185ABD">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cg stroke=%27rgba(255,255,255,.6)%27 stroke-width=%271%27 stroke-linejoin=%27round%27%3E%3Cpolygon points=%2716,10 48,10 42,26 22,26%27 fill=%27%23C4B5FD%27/%3E%3Cpolygon points=%2716,10 22,26 4,26%27 fill=%27%237AA2FF%27/%3E%3Cpolygon points=%2748,10 42,26 60,26%27 fill=%27%23F0ABFC%27/%3E%3Cpolygon points=%274,26 22,26 32,58%27 fill=%27%234F7BE8%27/%3E%3Cpolygon points=%2722,26 42,26 32,58%27 fill=%27%238B5CF6%27/%3E%3Cpolygon points=%2742,26 60,26 32,58%27 fill=%27%23C026D3%27/%3E%3C/g%3E%3Cpath d=%27M27 37V19h5.5a5 5 0 0 1 0 10H27%27 fill=%27none%27 stroke=%27%231E1B4B%27 stroke-opacity=%27.35%27 stroke-width=%275%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M27 37V19h5.5a5 5 0 0 1 0 10H27%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z%27 fill=%27%23fff%27 stroke=%27none%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cg stroke=%27rgba(255,255,255,.6)%27 stroke-width=%271%27 stroke-linejoin=%27round%27%3E%3Cpolygon points=%2716,10 48,10 42,26 22,26%27 fill=%27%23C4B5FD%27/%3E%3Cpolygon points=%2716,10 22,26 4,26%27 fill=%27%237AA2FF%27/%3E%3Cpolygon points=%2748,10 42,26 60,26%27 fill=%27%23F0ABFC%27/%3E%3Cpolygon points=%274,26 22,26 32,58%27 fill=%27%234F7BE8%27/%3E%3Cpolygon points=%2722,26 42,26 32,58%27 fill=%27%238B5CF6%27/%3E%3Cpolygon points=%2742,26 60,26 32,58%27 fill=%27%23C026D3%27/%3E%3C/g%3E%3Cpath d=%27M26 37V19L38 37V19%27 fill=%27none%27 stroke=%27%231E1B4B%27 stroke-opacity=%27.35%27 stroke-width=%275%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M26 37V19L38 37V19%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z%27 fill=%27%23fff%27 stroke=%27none%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:wght@500&display=swap" rel="stylesheet">
@@ -68,14 +68,15 @@ input[type=text],input[type=password],select{font:inherit;padding:10px 13px;bord
 ::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--muted) 70%,transparent);background-clip:content-box}
 textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}
 .pl{display:inline-block;margin:6px 0 0;padding:6px 16px;border:0;border-radius:999px;background:var(--ac);color:var(--ai);font-weight:600;cursor:pointer}
+.gamecard{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin:6px 0}.gamecard span{flex:1;font-weight:600}.gamecard .pl{margin:0}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}aside{flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0}.rec{display:none}.new{margin-left:auto}.acctwrap{width:auto}.acct small,.acct span span{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;right:0;min-width:180px}main{padding:12px}}
 </style>
 </head>
 <body>
-<noscript>Prism needs JavaScript to work.</noscript>
+<noscript>Neo needs JavaScript to work.</noscript>
 <aside>
-  <div class="brand"><svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.6)" stroke-width="1" stroke-linejoin="round"><polygon points="16,10 48,10 42,26 22,26" fill="#C4B5FD"/><polygon points="16,10 22,26 4,26" fill="#7AA2FF"/><polygon points="48,10 42,26 60,26" fill="#F0ABFC"/><polygon points="4,26 22,26 32,58" fill="#4F7BE8"/><polygon points="22,26 42,26 32,58" fill="#8B5CF6"/><polygon points="42,26 60,26 32,58" fill="#C026D3"/></g><path d="M27 37V19h5.5a5 5 0 0 1 0 10H27" fill="none" stroke="#1E1B4B" stroke-opacity=".35" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 37V19h5.5a5 5 0 0 1 0 10H27" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z" fill="#fff" stroke="none"/></svg>Prism</div>
+  <div class="brand"><svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.6)" stroke-width="1" stroke-linejoin="round"><polygon points="16,10 48,10 42,26 22,26" fill="#C4B5FD"/><polygon points="16,10 22,26 4,26" fill="#7AA2FF"/><polygon points="48,10 42,26 60,26" fill="#F0ABFC"/><polygon points="4,26 22,26 32,58" fill="#4F7BE8"/><polygon points="22,26 42,26 32,58" fill="#8B5CF6"/><polygon points="42,26 60,26 32,58" fill="#C026D3"/></g><path d="M26 37V19L38 37V19" fill="none" stroke="#1E1B4B" stroke-opacity=".35" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 37V19L38 37V19" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z" fill="#fff" stroke="none"/></svg>Neo</div>
   <button class="new" id="newc">+ New chat</button>
   <div class="rec" id="recent"></div>
   <div class="acctwrap">
@@ -84,7 +85,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   </div>
 </aside>
 <main>
-  <div id="empty"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.6)" stroke-width="1" stroke-linejoin="round"><polygon points="16,10 48,10 42,26 22,26" fill="#C4B5FD"/><polygon points="16,10 22,26 4,26" fill="#7AA2FF"/><polygon points="48,10 42,26 60,26" fill="#F0ABFC"/><polygon points="4,26 22,26 32,58" fill="#4F7BE8"/><polygon points="22,26 42,26 32,58" fill="#8B5CF6"/><polygon points="42,26 60,26 32,58" fill="#C026D3"/></g><path d="M27 37V19h5.5a5 5 0 0 1 0 10H27" fill="none" stroke="#1E1B4B" stroke-opacity=".35" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 37V19h5.5a5 5 0 0 1 0 10H27" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z" fill="#fff" stroke="none"/></svg><h1 id="hello"></h1></div>
+  <div id="empty"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.6)" stroke-width="1" stroke-linejoin="round"><polygon points="16,10 48,10 42,26 22,26" fill="#C4B5FD"/><polygon points="16,10 22,26 4,26" fill="#7AA2FF"/><polygon points="48,10 42,26 60,26" fill="#F0ABFC"/><polygon points="4,26 22,26 32,58" fill="#4F7BE8"/><polygon points="22,26 42,26 32,58" fill="#8B5CF6"/><polygon points="42,26 60,26 32,58" fill="#C026D3"/></g><path d="M26 37V19L38 37V19" fill="none" stroke="#1E1B4B" stroke-opacity=".35" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 37V19L38 37V19" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z" fill="#fff" stroke="none"/></svg><h1 id="hello"></h1></div>
   <div id="msgs" aria-live="polite" hidden></div>
   <div id="sugg"></div>
   <div id="cpre" hidden></div>
@@ -99,7 +100,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   <p class="note">Games run in a locked box and can't touch your account. If one doesn't work, tell the AI what went wrong and ask it to fix it.</p>
 </dialog>
 
-<dialog id="auth"><h2>Welcome to Prism</h2>
+<dialog id="auth"><h2>Welcome to Neo</h2>
   <p>Pick a name and a password. No email needed, and your account is ready instantly.</p>
   <div class="seg" role="group" aria-label="Log in or sign up"><button type="button" id="alogin" aria-pressed="true">Log in</button><button type="button" id="asignup" aria-pressed="false">Sign up</button></div>
   <form id="aform">
@@ -116,7 +117,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   <div class="row"><label for="sname">Display name</label><input type="text" id="sname" maxlength="30"></div>
   <div class="row"><label for="slook">Look</label><select id="slook"><option value="office">Office</option><option value="clean">Clean white</option><option value="classic">Classic</option></select></div>
   <div class="row"><label for="stheme">Theme</label><select id="stheme"><option value="auto">Match my device</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
-  <div class="row"><label for="sinstr">Instructions for the AI</label><textarea id="sinstr" rows="5" maxlength="1000" placeholder="Type anything you want it to do. For example: Talk like a pirate. Keep answers short. Explain things like I'm 12. Always give me examples."></textarea><span class="note"><span id="sinc">0</span> / 1000 · The AI follows this in every chat. Leave it empty for the normal Prism.</span>
+  <div class="row"><label for="sinstr">Instructions for the AI</label><textarea id="sinstr" rows="5" maxlength="1000" placeholder="Type anything you want it to do. For example: Talk like a pirate. Keep answers short. Explain things like I'm 12. Always give me examples."></textarea><span class="note"><span id="sinc">0</span> / 1000 · The AI follows this in every chat. Leave it empty for the normal Neo.</span>
     <div style="display:flex;gap:8px;margin-top:6px"><input type="text" id="spname" maxlength="30" placeholder="Name this personality to save it" style="flex:1"><button class="sm" id="spsave" type="button">Save</button></div>
     <span class="note" id="spmsg"></span><div id="splist"></div></div>
   <label class="chk"><input type="checkbox" id="skeep"> Save my chats in this browser</label>
@@ -130,14 +131,14 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   <p><b>How your messages are used.</b> They go to our server and then to Google's Gemini API, which writes the reply. We don't save them on our server. Google processes them under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't send passwords, ID numbers, medical details, private images, or other sensitive or confidential things.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off chat saving, clear your chats, or delete everything. Clearing your browser data does the same.</p>
-  <p><b>Children.</b> Prism is not meant for children under 13.</p>
+  <p><b>Children.</b> Neo is not meant for children under 13.</p>
   <p><b>Contact.</b> Questions? Email [your email].</p>
   <div class="close"><button class="go" data-close>Close</button></div></dialog>
 
 <dialog id="terms"><h2>Terms of service</h2><p class="note">Last updated October 22, 2026</p>
-  <p><b>Using Prism.</b> By using the site you agree to these terms. If you don't agree, please don't use it.</p>
+  <p><b>Using Neo.</b> By using the site you agree to these terms. If you don't agree, please don't use it.</p>
   <p><b>Your content.</b> You own what you write and upload. You're responsible for it, and you let us process it to give you replies. Don't submit anything illegal or anything you don't have the right to use.</p>
-  <p><b>AI can be wrong.</b> Replies are made by AI and may contain mistakes. Check anything important before you rely on it, and don't use Prism for medical, legal or financial decisions.</p>
+  <p><b>AI can be wrong.</b> Replies are made by AI and may contain mistakes. Check anything important before you rely on it, and don't use Neo for medical, legal or financial decisions.</p>
   <p><b>Fair use.</b> Don't try to break, overload or misuse the service, or use it to harass or deceive people.</p>
   <p><b>No guarantees.</b> The service is provided "as is", and may change or go down at any time. To the extent the law allows, we aren't liable for losses from using it.</p>
   <p><b>Changes and contact.</b> We may update these terms and will change the date above when we do. Questions? Email [your email].</p>
@@ -173,7 +174,12 @@ function render(){
     if(x.image){const i=document.createElement("img");i.src=`data:${x.image.mime};base64,${x.image.data}`;i.alt="Attached image";d.appendChild(i)}
     if(x.role==="user")d.appendChild(document.createTextNode(x.text));
     else{const b=document.createElement("div");b.innerHTML=md(x.text);
-      b.querySelectorAll("pre.code").forEach(p=>{const c=p.textContent;if(/<!doctype html|<html|<canvas|<script/i.test(c)){const g=document.createElement("button");g.type="button";g.className="pl";g.textContent="▶ Play";g.onclick=()=>playGame(c);p.before(g)}});d.appendChild(b)}
+      b.querySelectorAll("pre.code").forEach(p=>{const c=p.textContent;if(/<!doctype html|<html|<canvas|<script/i.test(c)){
+        p.hidden=true;const box=document.createElement("div");box.className="gamecard";
+        const t=document.createElement("span");t.textContent="🎮 Your game is ready";
+        const g=document.createElement("button");g.type="button";g.className="pl";g.textContent="▶ Play";g.onclick=()=>playGame(c);
+        const v=document.createElement("button");v.type="button";v.className="sm";v.textContent="Show code";v.onclick=()=>{p.hidden=!p.hidden;v.textContent=p.hidden?"Show code":"Hide code"};
+        box.append(t,g,v);p.before(box)}});
     if(x.role==="model"&&!x.err&&x.text!=="Thinking..."){const c=document.createElement("button");c.className="cp";c.textContent="Copy";c.onclick=async()=>{try{await navigator.clipboard.writeText(x.text);c.textContent="Copied";setTimeout(()=>c.textContent="Copy",1400)}catch{}};d.appendChild(c)}
     m.appendChild(d);
   });
