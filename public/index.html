@@ -97,6 +97,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 <dialog id="game" style="width:min(900px,96vw)">
   <div class="close" style="margin:0 0 10px;justify-content:space-between"><b>Game</b><span><button class="sm" id="grestart">Restart</button> <button class="sm" data-close>Close</button></span></div>
   <iframe id="gframe" sandbox="allow-scripts" title="Game" style="width:100%;height:68vh;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>
+  <div id="gerr" class="note err" hidden style="margin:8px 0"><span id="gerrt"></span> <button class="sm" id="gfix">Ask the AI to fix it</button></div>
   <p class="note">Games run in a locked box and can't touch your account. If one doesn't work, tell the AI what went wrong and ask it to fix it.</p>
 </dialog>
 
@@ -163,7 +164,7 @@ function apply(){
 let cur,busy=false,pending=null;
 const newChat=()=>{cur={id:Date.now(),title:"New chat",msgs:[]}};
 function md(t){
-  const bl=[];t=t.replace(/```(?:\w*\n)?([\s\S]*?)```/g,(_,c)=>{bl.push(c);return"\u0000"+(bl.length-1)+"\u0000"});
+  const bl=[];t=t.replace(/```(?:\w*\n)?([\s\S]*?)(?:```|$)/g,(_,c)=>{bl.push(c);return"\u0000"+(bl.length-1)+"\u0000"});
   t=esc(t).replace(/`([^`\n]+)`/g,"<code>$1</code>").replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>").replace(/^#{1,3} +(.+)$/gm,"<b>$1</b>").replace(/^[ \t]*[-*] +/gm,"• ");
   return t.replace(/\u0000(\d+)\u0000/g,(_,i)=>'<pre class="code">'+esc(bl[i].replace(/\n$/,""))+"</pre>");
 }
@@ -175,11 +176,18 @@ function render(){
     if(x.role==="user")d.appendChild(document.createTextNode(x.text));
     else{const b=document.createElement("div");b.innerHTML=md(x.text);
       b.querySelectorAll("pre.code").forEach(p=>{const c=p.textContent;if(/<!doctype html|<html|<canvas|<script/i.test(c)){
-        p.hidden=true;const box=document.createElement("div");box.className="gamecard";
-        const t=document.createElement("span");t.textContent="🎮 Your game is ready";
-        const g=document.createElement("button");g.type="button";g.className="pl";g.textContent="▶ Play";g.onclick=()=>playGame(c);
-        const v=document.createElement("button");v.type="button";v.className="sm";v.textContent="Show code";v.onclick=()=>{p.hidden=!p.hidden;v.textContent=p.hidden?"Show code":"Hide code"};
-        box.append(t,g,v);p.before(box)}});
+        const full=/<\/html>|<\/body>/i.test(c),box=document.createElement("div"),t=document.createElement("span");box.className="gamecard";
+        if(full){
+          p.hidden=true;t.textContent="🎮 Your game is ready";
+          const g=document.createElement("button");g.type="button";g.className="pl";g.textContent="▶ Play";g.onclick=()=>playGame(c);
+          const v=document.createElement("button");v.type="button";v.className="sm";v.textContent="Show code";v.onclick=()=>{p.hidden=!p.hidden;v.textContent=p.hidden?"Show code":"Hide code"};
+          box.append(t,g,v);
+        }else{
+          t.textContent="⚠️ This update came back incomplete";
+          const f=document.createElement("button");f.type="button";f.className="pl";f.textContent="Ask for the full game";f.onclick=()=>send("Please send the complete game again as one full HTML file, from <!DOCTYPE html> to </html>.");
+          box.append(t,f);
+        }
+        p.before(box)}});
       d.appendChild(b)}
     if(x.role==="model"&&!x.err&&x.text!=="Thinking..."){const c=document.createElement("button");c.className="cp";c.textContent="Copy";c.onclick=async()=>{try{await navigator.clipboard.writeText(x.text);c.textContent="Copied";setTimeout(()=>c.textContent="Copy",1400)}catch{}};d.appendChild(c)}
     m.appendChild(d);
@@ -224,15 +232,19 @@ $("ci").addEventListener("paste",e=>{const f=[...e.clipboardData.files].find(x=>
 $("newc").onclick=()=>{newChat();setPending(null);render();$("ci").focus()};
 
 // games: run the AI's HTML in a locked box with no network
+const HOOK="<scr"+"ipt>addEventListener('error',function(e){parent.postMessage({neoErr:(e.message||'Error')+' (line '+e.lineno+')'},'*')});addEventListener('unhandledrejection',function(e){parent.postMessage({neoErr:String(e.reason)},'*')});setTimeout(function(){if(!document.body||(!document.body.innerText.trim()&&!document.querySelector('canvas,svg,img,button,input')))parent.postMessage({neoErr:'The page is blank.'},'*')},2500)</scr"+"ipt>";
+let lastErr="";
 function playGame(code){
-  const csp=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:">`;
-  const h=/<head[^>]*>/i,t=/<html[^>]*>/i;
+  let csp=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:">`;
+  csp+=HOOK;const h=/<head[^>]*>/i,t=/<html[^>]*>/i;
   const doc=h.test(code)?code.replace(h,m=>m+csp):t.test(code)?code.replace(t,m=>m+csp):csp+code;
-  $("gframe").srcdoc=doc;$("game").showModal();$("gframe").focus();
+  $("gerr").hidden=true;$("gframe").srcdoc=doc;$("game").showModal();$("gframe").focus();
 }
 $("gframe").onload=()=>$("gframe").focus();
 $("grestart").onclick=()=>{const d=$("gframe").srcdoc;$("gframe").srcdoc="";setTimeout(()=>$("gframe").srcdoc=d,60)};
-$("game").addEventListener("close",()=>{$("gframe").srcdoc=""});
+$("game").addEventListener("close",()=>{$("gframe").srcdoc="";$("gerr").hidden=true});
+addEventListener("message",e=>{if(e.source!==$("gframe").contentWindow||!e.data||!e.data.neoErr)return;lastErr=String(e.data.neoErr).slice(0,300);$("gerrt").textContent="The game hit a problem: "+lastErr;$("gerr").hidden=false});
+$("gfix").onclick=()=>{$("game").close();send("The game has an error: "+lastErr+". Please fix it and send the complete game again.")};
 
 // menus and dialogs
 $("acct").onclick=()=>{$("menu").hidden=!$("menu").hidden};
