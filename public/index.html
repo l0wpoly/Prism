@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Neo: AI assistant</title>
-<meta name="description" content="Neo is a friendly AI assistant. Ask anything, or attach an image.">
+<meta name="description" content="Neo is a uncensored ai and says anything sus or swears. Ask anything, or attach an image.">
 <meta name="theme-color" content="#185ABD">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cg stroke=%27rgba(255,255,255,.6)%27 stroke-width=%271%27 stroke-linejoin=%27round%27%3E%3Cpolygon points=%2716,10 48,10 42,26 22,26%27 fill=%27%23C4B5FD%27/%3E%3Cpolygon points=%2716,10 22,26 4,26%27 fill=%27%237AA2FF%27/%3E%3Cpolygon points=%2748,10 42,26 60,26%27 fill=%27%23F0ABFC%27/%3E%3Cpolygon points=%274,26 22,26 32,58%27 fill=%27%234F7BE8%27/%3E%3Cpolygon points=%2722,26 42,26 32,58%27 fill=%27%238B5CF6%27/%3E%3Cpolygon points=%2742,26 60,26 32,58%27 fill=%27%23C026D3%27/%3E%3C/g%3E%3Cpath d=%27M26 37V19L38 37V19%27 fill=%27none%27 stroke=%27%231E1B4B%27 stroke-opacity=%27.35%27 stroke-width=%275%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M26 37V19L38 37V19%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z%27 fill=%27%23fff%27 stroke=%27none%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -94,6 +94,16 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 </main>
 <div id="toast" hidden role="status"></div>
 
+<dialog id="age"><h2>Neo is for adults</h2>
+  <form id="ageform">
+    <div id="agebody"><p>You must be 18 or older to use Neo. What year were you born?</p>
+      <div class="row"><label for="ageyear">Birth year</label><input type="text" id="ageyear" inputmode="numeric" maxlength="4" placeholder="for example 2000" autocomplete="off"></div>
+      <p class="note err" id="agemsg" aria-live="polite"></p>
+      <div class="close"><button class="go">Continue</button></div></div>
+  </form>
+  <p class="note">We don't keep your birth year, only whether you're 18 or older.</p>
+</dialog>
+
 <dialog id="game" style="width:min(900px,96vw)">
   <div class="close" style="margin:0 0 10px;justify-content:space-between"><b>Game</b><span><button class="sm" id="grestart">Restart</button> <button class="sm" data-close>Close</button></span></div>
   <div id="gwrap"></div>
@@ -132,12 +142,13 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   <p><b>How your messages are used.</b> They go to our server and then to Google's Gemini API, which writes the reply. We don't save them on our server. Google processes them under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't send passwords, ID numbers, medical details, private images, or other sensitive or confidential things.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off chat saving, clear your chats, or delete everything. Clearing your browser data does the same.</p>
-  <p><b>Children.</b> Neo is not meant for children under 13.</p>
+  <p><b>Age.</b> Neo is only for people 18 and older. We ask for your birth year once and only remember whether you're 18 or older, not the year.</p>
   <p><b>Contact.</b> Questions? Email [your email].</p>
   <div class="close"><button class="go" data-close>Close</button></div></dialog>
 
 <dialog id="terms"><h2>Terms of service</h2><p class="note">Last updated October 22, 2026</p>
-  <p><b>Using Neo.</b> By using the site you agree to these terms. If you don't agree, please don't use it.</p>
+  <p><b>Using Neo.</b> You must be 18 or older to use Neo. By using the site you agree to these terms. If you don't agree, please don't use it.</p>
+  <p><b>18+ only.</b> Neo is for people who are 18 or older. By using it, you confirm that you are.</p>
   <p><b>Your content.</b> You own what you write and upload. You're responsible for it, and you let us process it to give you replies. Don't submit anything illegal or anything you don't have the right to use.</p>
   <p><b>AI can be wrong.</b> Replies are made by AI and may contain mistakes. Check anything important before you rely on it, and don't use Neo for medical, legal or financial decisions.</p>
   <p><b>Fair use.</b> Don't try to break, overload or misuse the service, or use it to harass or deceive people.</p>
@@ -147,7 +158,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 
 <script>
 const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,instr:"",personas:[],chats:[]};
+let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,adult:false,blocked:false,instr:"",personas:[],chats:[]};
 try{Object.assign(S,JSON.parse(localStorage.getItem("redline")||"{}"))}catch{}
 ["history","usage","plan","variant","highlight","autocopy","keepHistory","size"].forEach(k=>delete S[k]);
 const save=()=>{try{localStorage.setItem("redline",JSON.stringify({...S,chats:S.keep?S.chats.slice(0,20).map(c=>({id:c.id,title:c.title,msgs:c.msgs.filter(m=>!m.err&&m.text!=="Thinking...").map(m=>({role:m.role,text:m.text}))})):[]}))}catch{}};
@@ -256,7 +267,7 @@ $("acct").onclick=()=>{$("menu").hidden=!$("menu").hidden};
 document.addEventListener("click",e=>{if(!e.target.closest(".acctwrap"))$("menu").hidden=true});
 document.querySelectorAll("[data-dlg]").forEach(b=>b.onclick=()=>$(b.dataset.dlg).showModal());
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
-document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}));
+document.querySelectorAll("dialog:not(#age)").forEach(d=>d.addEventListener("click",e=>{if(d.id==="age")return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}));
 
 // accounts
 let mode="login";
@@ -317,7 +328,17 @@ $("sclear").onclick=()=>{S.chats=[];newChat();save();render();$("sclear").textCo
 $("swipe").onclick=()=>{if(confirm("Delete all your saved data in this browser? This can't be undone.")){try{localStorage.removeItem("redline")}catch{}location.reload()}};
 
 newChat();apply();render();
-if(!S.session&&!S.welcomed){S.welcomed=true;save();setMode("signup");$("auth").showModal()}
+function welcome(){if(!S.session&&!S.welcomed){S.welcomed=true;save();setMode("signup");$("auth").showModal()}}
+function blockMinor(){S.blocked=true;save();document.body.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;text-align:center;color:var(--ink)"><div><h1>Sorry!</h1><p>Neo is only for people who are 18 or older.</p></div></div>'}
+// 18+ gate: asks your birth year once, and can't be closed until you pass
+$("age").addEventListener("cancel",e=>e.preventDefault());
+$("ageform").onsubmit=e=>{
+  e.preventDefault();const y=+$("ageyear").value.trim(),cy=new Date().getFullYear();
+  if(!(y>=1900&&y<=cy)){$("agemsg").textContent="Enter the 4-digit year you were born.";return}
+  if(y<=cy-19||(y===cy-18&&confirm("Have you already had your 18th birthday?"))){S.adult=true;S.blocked=false;save();$("age").close();welcome()}
+  else{$("age").close();blockMinor()}
+};
+if(S.blocked)blockMinor();else if(!S.adult)$("age").showModal();else welcome();
 </script>
 </body>
 </html>
