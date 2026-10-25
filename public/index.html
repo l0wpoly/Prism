@@ -145,14 +145,6 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 
 <script>
 const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-// ==========================================================
-// --supabase url and key     <-- PUT THEM HERE, between the quotes
-// (Press Ctrl+F and search for  --supabase  to find this spot)
-// ==========================================================
-const SUPABASE_URL = " https://yssvbqshbblwsumjxpwe.supabase.co";   // example: "https://abcdxyz.supabase.co"
-const SUPABASE_KEY = "sb_publishable_tk1h-3Yf7nwRBFpBLJpZ6A_JDzyl042";   // the PUBLISHABLE key, starts with sb_publishable_
-// Never put the secret key (sb_secret_...) here.
-// ==========================================================
 let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,instr:"",personas:[],chats:[]};
 try{Object.assign(S,JSON.parse(localStorage.getItem("redline")||"{}"))}catch{}
 ["history","usage","plan","variant","highlight","autocopy","keepHistory","size"].forEach(k=>delete S[k]);
@@ -243,14 +235,6 @@ document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("di
 document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}));
 
 // accounts
-async function authCall(path,body,token){
-  if(!SUPABASE_URL||!SUPABASE_KEY)throw new Error("Accounts aren't switched on yet.");
-  let r;try{r=await fetch(SUPABASE_URL+"/auth/v1/"+path,{method:"POST",headers:{"Content-Type":"application/json",apikey:SUPABASE_KEY,...(token?{Authorization:"Bearer "+token}:{})},body:JSON.stringify(body||{})})}
-  catch{throw new Error("Couldn't reach the account service. Check your connection.")}
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(d.msg||d.error_description||d.message||"Something went wrong.");
-  return d;
-}
 let mode="login";
 function setMode(m){mode=m;$("alogin").setAttribute("aria-pressed",m==="login");$("asignup").setAttribute("aria-pressed",m==="signup");$("asub").textContent=m==="login"?"Log in":"Create account";$("amsg").textContent="";$("apass").autocomplete=m==="login"?"current-password":"new-password"}
 $("alogin").onclick=()=>setMode("login");$("asignup").onclick=()=>setMode("signup");
@@ -259,18 +243,17 @@ $("aform").onsubmit=async e=>{
   const bad=t=>{msg.textContent=t;msg.className="note err"};
   if(!/^[a-z0-9_.-]{3,20}$/.test(name))return bad("Pick a name with 3 to 20 letters, numbers, _ . or -");
   if(password.length<6)return bad("Your password needs at least 6 characters.");
-  $("asub").disabled=true;const email=name+"@prism-users.com";
+  $("asub").disabled=true;
   try{
-    const d=mode==="login"?await authCall("token?grant_type=password",{email,password}):await authCall("signup",{email,password,data:{name}});
-    if(!d.access_token)throw new Error("Your Supabase project still wants email confirmation. Turn off Confirm email there, then try again.");
-    S.session={access_token:d.access_token,refresh_token:d.refresh_token,name,exp:Date.now()+(d.expires_in||3600)*1000};
-    S.name=name;save();apply();$("apass").value="";$("auth").close();
-  }catch(err){bad(/registered|already/i.test(err.message)?"That name is taken. Try another one.":/invalid login/i.test(err.message)?"Wrong name or password.":err.message)}
+    const r=await fetch("/api/"+(mode==="login"?"login":"signup"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,password})});
+    const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Something went wrong.");
+    S.session={token:d.token,name:d.name};S.name=d.name;save();apply();$("apass").value="";$("auth").close();
+  }catch(err){bad(err instanceof TypeError?"Couldn't reach the server. Try again.":err.message)}
   finally{$("asub").disabled=false}
 };
 $("mauth").onclick=()=>{
   $("menu").hidden=true;
-  if(S.session){authCall("logout",{},S.session.access_token).catch(()=>{});S.session=null;save();apply()}
+  if(S.session){S.session=null;save();apply()}
   else{setMode("login");$("auth").showModal()}
 };
 function paintVerify(){const a=S.session;$("semail").textContent=a?"Signed in as "+(a.name||S.name):"You're not signed in.";$("sverify").hidden=!!a}
@@ -310,7 +293,7 @@ $("sclear").onclick=()=>{S.chats=[];newChat();save();render();$("sclear").textCo
 $("swipe").onclick=()=>{if(confirm("Delete all your saved data in this browser? This can't be undone.")){try{localStorage.removeItem("redline")}catch{}location.reload()}};
 
 newChat();apply();render();
-if(SUPABASE_URL&&!S.session&&!S.welcomed){S.welcomed=true;save();setMode("signup");$("auth").showModal()}
+if(!S.session&&!S.welcomed){S.welcomed=true;save();setMode("signup");$("auth").showModal()}
 </script>
 </body>
 </html>
