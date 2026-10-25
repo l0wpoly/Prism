@@ -180,6 +180,7 @@ function render(){
         const g=document.createElement("button");g.type="button";g.className="pl";g.textContent="▶ Play";g.onclick=()=>playGame(c);
         const v=document.createElement("button");v.type="button";v.className="sm";v.textContent="Show code";v.onclick=()=>{p.hidden=!p.hidden;v.textContent=p.hidden?"Show code":"Hide code"};
         box.append(t,g,v);p.before(box)}});
+      d.appendChild(b)}
     if(x.role==="model"&&!x.err&&x.text!=="Thinking..."){const c=document.createElement("button");c.className="cp";c.textContent="Copy";c.onclick=async()=>{try{await navigator.clipboard.writeText(x.text);c.textContent="Copied";setTimeout(()=>c.textContent="Copy",1400)}catch{}};d.appendChild(c)}
     m.appendChild(d);
   });
