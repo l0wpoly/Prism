@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Neo: AI assistant</title>
-<meta name="description" content="Neo is a uncensored ai and says anything sus or swears. Ask anything, or attach an image.">
+<meta name="description" content="Neo is a friendly AI assistant. Ask anything, or attach an image.">
 <meta name="theme-color" content="#185ABD">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cg stroke=%27rgba(255,255,255,.6)%27 stroke-width=%271%27 stroke-linejoin=%27round%27%3E%3Cpolygon points=%2716,10 48,10 42,26 22,26%27 fill=%27%23C4B5FD%27/%3E%3Cpolygon points=%2716,10 22,26 4,26%27 fill=%27%237AA2FF%27/%3E%3Cpolygon points=%2748,10 42,26 60,26%27 fill=%27%23F0ABFC%27/%3E%3Cpolygon points=%274,26 22,26 32,58%27 fill=%27%234F7BE8%27/%3E%3Cpolygon points=%2722,26 42,26 32,58%27 fill=%27%238B5CF6%27/%3E%3Cpolygon points=%2742,26 60,26 32,58%27 fill=%27%23C026D3%27/%3E%3C/g%3E%3Cpath d=%27M26 37V19L38 37V19%27 fill=%27none%27 stroke=%27%231E1B4B%27 stroke-opacity=%27.35%27 stroke-width=%275%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M26 37V19L38 37V19%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Cpath d=%27M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z%27 fill=%27%23fff%27 stroke=%27none%27/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +42,7 @@ main{display:flex;flex-direction:column;min-height:0;padding:16px 20px 8px}
 .m.a{align-self:flex-start;background:var(--panel);border:1px solid var(--line)}.m.err{color:var(--err)}
 .m img{display:block;max-width:240px;max-height:180px;border-radius:8px;margin-bottom:6px}
 .m pre{background:var(--bg);padding:10px;border-radius:8px;overflow:auto;white-space:pre;margin:6px 0}.m code{background:var(--bg);padding:1px 5px;border-radius:4px}
-.cp{display:block;margin-top:6px;font-size:.8rem;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
+.cp{display:inline-block;margin:6px 14px 0 0;font-size:.8rem;border:0;background:none;color:var(--muted);cursor:pointer;padding:0}
 #sugg,#cpre,#cf{width:100%;max-width:760px;margin:0 auto}
 #sugg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:10px}
 .chip{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:.9rem}.chip:hover{border-color:var(--ac)}
@@ -69,6 +69,8 @@ input[type=text],input[type=password],select{font:inherit;padding:10px 13px;bord
 textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);resize:vertical}
 .pl{display:inline-block;margin:6px 0 0;padding:6px 16px;border:0;border-radius:999px;background:var(--ac);color:var(--ai);font-weight:600;cursor:pointer}
 .gamecard{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin:6px 0}.gamecard span{flex:1;font-weight:600}.gamecard .pl{margin:0}
+#top{width:100%;max-width:760px;margin:0 auto 6px;display:flex}#prov{padding:6px 12px;border-radius:999px;font-size:.9rem}
+#mic{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:none;font-size:1.1rem;cursor:pointer;flex:none}#mic.rec{background:#E5484D;border-color:#E5484D;color:#fff;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.6}}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media(max-width:800px){body{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}aside{flex-direction:row;align-items:center;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0}.rec{display:none}.new{margin-left:auto}.acctwrap{width:auto}.acct small,.acct span span{display:none}.menu{bottom:auto;top:calc(100% + 6px);left:auto;right:0;min-width:180px}main{padding:12px}}
 </style>
@@ -85,11 +87,12 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
   </div>
 </aside>
 <main>
+  <div id="top"><select id="prov" aria-label="Choose the AI"><option value="gemini">Gemini</option><option value="groq">Groq (fast)</option><option value="nvidia">NVIDIA NIM</option></select></div>
   <div id="empty"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><g stroke="rgba(255,255,255,.6)" stroke-width="1" stroke-linejoin="round"><polygon points="16,10 48,10 42,26 22,26" fill="#C4B5FD"/><polygon points="16,10 22,26 4,26" fill="#7AA2FF"/><polygon points="48,10 42,26 60,26" fill="#F0ABFC"/><polygon points="4,26 22,26 32,58" fill="#4F7BE8"/><polygon points="22,26 42,26 32,58" fill="#8B5CF6"/><polygon points="42,26 60,26 32,58" fill="#C026D3"/></g><path d="M26 37V19L38 37V19" fill="none" stroke="#1E1B4B" stroke-opacity=".35" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M26 37V19L38 37V19" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M57 3l1.3 3.7L62 8l-3.7 1.3L57 13l-1.3-3.7L52 8l3.7-1.3z" fill="#fff" stroke="none"/></svg><h1 id="hello"></h1></div>
   <div id="msgs" aria-live="polite" hidden></div>
   <div id="sugg"></div>
   <div id="cpre" hidden></div>
-  <form id="cf"><button type="button" id="cat" aria-label="Attach an image" title="Attach an image">+</button><input type="file" id="cfile" accept="image/*" hidden><input type="text" id="ci" maxlength="2000" placeholder="Ask anything, or attach an image..." aria-label="Message" autocomplete="off"><button class="go">Send</button></form>
+  <form id="cf"><button type="button" id="cat" aria-label="Attach an image" title="Attach an image">+</button><input type="file" id="cfile" accept="image/*" hidden><input type="text" id="ci" maxlength="2000" placeholder="Ask anything, or attach an image..." aria-label="Message" autocomplete="off"><button class="go"><button type="button" id="mic" aria-label="Talk instead of typing" title="Talk instead of typing">🎤</button><button class="go">Send</button></form>
   <footer><button class="link" data-dlg="privacy">Privacy policy</button><button class="link" data-dlg="terms">Terms of service</button></footer>
 </main>
 <div id="toast" hidden role="status"></div>
@@ -132,6 +135,8 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
     <div style="display:flex;gap:8px;margin-top:6px"><input type="text" id="spname" maxlength="30" placeholder="Name this personality to save it" style="flex:1"><button class="sm" id="spsave" type="button">Save</button></div>
     <span class="note" id="spmsg"></span><div id="splist"></div></div>
   <label class="chk"><input type="checkbox" id="skeep"> Save my chats in this browser</label>
+  <label class="chk"><input type="checkbox" id="sauto"> Send right after I stop talking (🎤)</label>
+  <label class="chk"><input type="checkbox" id="sspeak"> Read Neo's replies out loud</label>
   <div class="row"><b>Your data</b><span><button class="sm" id="sclear">Clear chats</button> <button class="sm" id="swipe">Delete everything</button></span></div>
   <div class="row"><span><button class="sm" data-dlg="privacy">Privacy policy</button> <button class="sm" data-dlg="terms">Terms of service</button></span></div>
   <div class="close"><button class="go" data-close>Done</button></div>
@@ -139,7 +144,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 
 <dialog id="privacy"><h2>Privacy policy</h2><p class="note">Last updated October 22, 2026</p>
   <p><b>What we handle.</b> Your messages, any images you send, and any custom instructions you give the AI. Your settings, display name, saved chats and saved AI personalities stay in your own browser (local storage), not on our servers. If you create an account, your account name and password (the password is stored scrambled, never in plain text) are kept by our account provider, Supabase. Accounts don't use an email address, so a forgotten password can't be reset.</p>
-  <p><b>How your messages are used.</b> They go to our server and then to Google's Gemini API, which writes the reply. We don't save them on our server. Google processes them under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Don't send passwords, ID numbers, medical details, private images, or other sensitive or confidential things.</p>
+  <p><b>How your messages are used.</b> They go to our server and then to the AI company you pick at the top (Google's Gemini by default, or Groq or NVIDIA), which writes the reply. We don't save them on our server. Google processes them under its own terms, and on the free Gemini tier Google may use submitted content to improve its products. Groq and NVIDIA have their own terms as well. If you use the microphone or the Listen button, your recording or the text being read goes to Groq, and recordings aren't saved. Don't send passwords, ID numbers, medical details, private images, or other sensitive or confidential things.</p>
   <p><b>Logs and cookies.</b> Our server may log technical errors, such as a failed request. We don't use tracking cookies.</p>
   <p><b>Your choices.</b> In Settings you can turn off chat saving, clear your chats, or delete everything. Clearing your browser data does the same.</p>
   <p><b>Age.</b> Neo is only for people 18 and older. We ask for your birth year once and only remember whether you're 18 or older, not the year.</p>
@@ -158,7 +163,7 @@ textarea{font:inherit;padding:10px 13px;border-radius:8px;border:1px solid var(-
 
 <script>
 const $=id=>document.getElementById(id),esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,adult:false,blocked:false,instr:"",personas:[],chats:[]};
+let S={name:"Guest",look:"office",theme:"auto",keep:true,session:null,welcomed:false,prov:"gemini",autosend:true,autospeak:false,adult:false,blocked:false,instr:"",personas:[],chats:[]};
 try{Object.assign(S,JSON.parse(localStorage.getItem("redline")||"{}"))}catch{}
 ["history","usage","plan","variant","highlight","autocopy","keepHistory","size"].forEach(k=>delete S[k]);
 const save=()=>{try{localStorage.setItem("redline",JSON.stringify({...S,chats:S.keep?S.chats.slice(0,20).map(c=>({id:c.id,title:c.title,msgs:c.msgs.filter(m=>!m.err&&m.text!=="Thinking...").map(m=>({role:m.role,text:m.text}))})):[]}))}catch{}};
@@ -200,7 +205,7 @@ function render(){
         }
         p.before(box)}});
       d.appendChild(b)}
-    if(x.role==="model"&&!x.err&&x.text!=="Thinking..."){const c=document.createElement("button");c.className="cp";c.textContent="Copy";c.onclick=async()=>{try{await navigator.clipboard.writeText(x.text);c.textContent="Copied";setTimeout(()=>c.textContent="Copy",1400)}catch{}};d.appendChild(c)}
+    if(x.role==="model"&&!x.err&&x.text!=="Thinking..."){const c=document.createElement("button");c.className="cp";c.textContent="Copy";c.onclick=async()=>{try{await navigator.clipboard.writeText(x.text);c.textContent="Copied";setTimeout(()=>c.textContent="Copy",1400)}catch{}};d.appendChild(c);const l=document.createElement("button");l.className="cp lis";l.textContent="🔊 Listen";l.onclick=()=>speak(x.text,l);d.appendChild(l)}
     m.appendChild(d);
   });
   m.scrollTop=m.scrollHeight;
@@ -215,13 +220,13 @@ async function post(url,body){
   }finally{clearTimeout(t);$("toast").hidden=true}
 }
 async function send(text){
-  text=text.trim();const image=pending;if((!text&&!image)||busy)return;busy=true;
+  text=text.trim();const image=pending;if((!text&&!image)||busy)return;if(image&&S.prov!=="gemini")return toast("Images only work with Gemini. Switch the AI at the top.",3500);busy=true;
   if(!S.chats.includes(cur)){cur.title=(text||"Image").slice(0,40);S.chats.unshift(cur)}
   cur.msgs.push({role:"user",text:text||"What can you tell me about this image? If it has writing in it, help me improve it.",image});
   const bot={role:"model",text:"Thinking..."},msgs=cur.msgs.filter(m=>!m.err).map(m=>({role:m.role,text:m.text,image:m.image}));
   cur.msgs.push(bot);$("ci").value="";setPending(null);render();
-  try{bot.text=await post("/api/chat",{messages:msgs,instructions:S.instr||""})}catch(e){bot.text=e.message;bot.err=1}
-  busy=false;save();render();
+  try{bot.text=await post("/api/chat",{messages:msgs,instructions:S.instr||"",provider:S.prov})}catch(e){bot.text=e.message;bot.err=1}
+  busy=false;save();render();if(S.autospeak&&!bot.err)speak(bot.text,null);
 }
 function setPending(img){
   pending=img;const p=$("cpre");p.hidden=!img;p.textContent="";
@@ -262,6 +267,59 @@ $("game").addEventListener("close",()=>{$("gwrap").textContent="";$("gerr").hidd
 addEventListener("message",e=>{if(e.source!==($("gframe")||{}).contentWindow||!e.data||!e.data.neoErr)return;lastErr=String(e.data.neoErr).slice(0,300);$("gerrt").textContent="The game hit a problem: "+lastErr;$("gerr").hidden=false});
 $("gfix").onclick=()=>{$("game").close();send("The game has an error: "+lastErr+". Please fix it and send the complete game again.")};
 
+// voice: talk to Neo (speech to text) and hear replies (text to speech), both through Groq
+let rec=null,recChunks=[],recTimer=null,aud=null,spk=0;
+async function toggleMic(){
+  if(rec){rec.stop();return}
+  if(!navigator.mediaDevices||!window.MediaRecorder)return toast("Your browser can't record audio here.",3500);
+  let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch{return toast("Allow the microphone to talk to Neo.",3500)}
+  const mt=MediaRecorder.isTypeSupported("audio/webm")?"audio/webm":"";
+  rec=new MediaRecorder(stream,mt?{mimeType:mt}:undefined);recChunks=[];
+  rec.ondataavailable=e=>{if(e.data.size)recChunks.push(e.data)};
+  rec.onstop=async()=>{
+    clearTimeout(recTimer);stream.getTracks().forEach(t=>t.stop());$("mic").classList.remove("rec");$("mic").textContent="🎤";
+    const type=rec.mimeType||"audio/webm",blob=new Blob(recChunks,{type});rec=null;
+    if(blob.size<2000)return toast("I didn't hear anything. Try again.",3000);
+    $("mic").disabled=true;toast("Listening...");
+    try{
+      const r=await fetch("/api/stt",{method:"POST",headers:{"Content-Type":type},body:blob});
+      const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Couldn't hear that.");
+      $("toast").hidden=true;
+      if(!d.text)return toast("I didn't catch that. Try again.",3000);
+      $("ci").value=d.text;if(S.autosend)send(d.text);else $("ci").focus();
+    }catch(e){toast(e.message,4000)}
+    finally{$("mic").disabled=false}
+  };
+  rec.start();$("mic").classList.add("rec");$("mic").textContent="⏹";recTimer=setTimeout(()=>rec&&rec.stop(),60000);
+}
+$("mic").onclick=toggleMic;
+const clean=t=>t.replace(/```[\s\S]*?(?:```|$)/g," code skipped. ").replace(/https?:\S+/g," link ").replace(/[*_`#>~]/g,"").replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,"").replace(/\s+/g," ").trim();
+function chunks(t){
+  const parts=[];(t.match(/[^.!?\n]+[.!?]*/g)||[]).forEach(s=>{s=s.trim();while(s.length>180){let i=s.lastIndexOf(" ",180);if(i<60)i=180;parts.push(s.slice(0,i));s=s.slice(i).trim()}if(s)parts.push(s)});
+  const out=[];let c="";parts.forEach(p=>{if((c+" "+p).trim().length>180){if(c)out.push(c);c=p}else c=(c+" "+p).trim()});if(c)out.push(c);return out.slice(0,8);
+}
+function stopSpeak(){spk++;if(aud){aud.pause();aud=null}document.querySelectorAll(".lis").forEach(b=>b.textContent="🔊 Listen")}
+async function fetchAudio(t){
+  const r=await fetch("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t})});
+  if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Couldn't make the voice.")}
+  return URL.createObjectURL(await r.blob());
+}
+async function speak(text,btn){
+  if(btn&&btn.textContent==="⏹ Stop"){stopSpeak();return}
+  stopSpeak();const id=spk;if(btn)btn.textContent="⏹ Stop";
+  const list=chunks(clean(text));if(!list.length){stopSpeak();return}
+  try{
+    let next=fetchAudio(list[0]);
+    for(let i=0;i<list.length;i++){
+      const url=await next;if(id!==spk)return;
+      if(i+1<list.length){next=fetchAudio(list[i+1]);next.catch(()=>{})}
+      await new Promise(done=>{aud=new Audio(url);aud.onended=done;aud.onerror=done;aud.play().catch(done)});
+      URL.revokeObjectURL(url);if(id!==spk)return;
+    }
+  }catch(e){toast(e.message,4000)}
+  if(id===spk)stopSpeak();
+}
+
 // menus and dialogs
 $("acct").onclick=()=>{$("menu").hidden=!$("menu").hidden};
 document.addEventListener("click",e=>{if(!e.target.closest(".acctwrap"))$("menu").hidden=true});
@@ -297,7 +355,7 @@ $("sverify").onclick=()=>{$("settings").close();setMode("signup");$("auth").show
 // settings
 $("mset").onclick=()=>{
   $("menu").hidden=true;paintVerify();
-  $("sname").value=S.name;$("sinstr").value=S.instr||"";$("sinc").textContent=($("sinstr").value||"").length;paintPersonas();$("slook").value=S.look;$("stheme").value=S.theme;$("skeep").checked=S.keep;$("sclear").textContent="Clear chats";
+  $("sname").value=S.name;$("sinstr").value=S.instr||"";$("sinc").textContent=($("sinstr").value||"").length;paintPersonas();$("slook").value=S.look;$("stheme").value=S.theme;$("skeep").checked=S.keep;$("sauto").checked=S.autosend;$("sspeak").checked=S.autospeak;$("sclear").textContent="Clear chats";
   $("settings").showModal();
 };
 $("sinstr").oninput=e=>{S.instr=e.target.value.slice(0,1000);$("sinc").textContent=S.instr.length;save();paintPersonas()};
@@ -323,11 +381,13 @@ $("spsave").onclick=()=>{
 $("sname").oninput=e=>{S.name=e.target.value.trim()||"Guest";save();apply()};
 $("slook").onchange=e=>{S.look=e.target.value;save();apply()};
 $("stheme").onchange=e=>{S.theme=e.target.value;save();apply()};
+$("sauto").onchange=e=>{S.autosend=e.target.checked;save()};$("sspeak").onchange=e=>{S.autospeak=e.target.checked;save()};
 $("skeep").onchange=e=>{S.keep=e.target.checked;save()};
 $("sclear").onclick=()=>{S.chats=[];newChat();save();render();$("sclear").textContent="Cleared"};
 $("swipe").onclick=()=>{if(confirm("Delete all your saved data in this browser? This can't be undone.")){try{localStorage.removeItem("redline")}catch{}location.reload()}};
 
 newChat();apply();render();
+$("prov").value=S.prov||"gemini";$("prov").onchange=e=>{S.prov=e.target.value;save()};
 function welcome(){if(!S.session&&!S.welcomed){S.welcomed=true;save();setMode("signup");$("auth").showModal()}}
 function blockMinor(){S.blocked=true;save();document.body.innerHTML='<div style="display:grid;place-items:center;height:100%;padding:24px;text-align:center;color:var(--ink)"><div><h1>Sorry!</h1><p>Neo is only for people who are 18 or older.</p></div></div>'}
 // 18+ gate: asks your birth year once, and can't be closed until you pass
